@@ -41,35 +41,35 @@
         @endphp
 
         @if($tours->count() > 0)
-            <div class="flex flex-wrap justify-center gap-12 max-w-6xl">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
                 @foreach($tours as $tour)
                     @php $alreadyBooked = isset($myBookedTourIds[$tour->id]); @endphp
-                    <div class="bg-white border border-gray-200 rounded-xl shadow-md p-6 w-80 text-center">
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-md p-4 text-center">
 
-                        <h3 class="text-xl font-bold mb-2">
+                        <h3 class="text-base font-bold mb-1">
                             {{ $tour->nombre }}
                         </h3>
 
-                        <p class="text-gray-600 text-sm mb-4">
+                        <p class="text-gray-600 text-xs mb-2 truncate">
                             {{ $tour->descripcion }}
                         </p>
 
-                        <div class="text-sm text-gray-700 space-y-2 flex flex-col items-center">
+                        <div class="text-xs text-gray-700 space-y-1 flex flex-col items-center">
                             <p>📍 {{ $tour->ubicacion }}</p>
                             <p>📅 {{ $tour->fecha_inicio }} → {{ $tour->fecha_fin }}</p>
                             <p class="text-green-600 font-bold">💰 ${{ number_format($tour->precio_total, 2) }}</p>
                             <p>👥 {{ $tour->cupos_disponibles }} / {{ $tour->cupos_totales }}</p>
                         </div>
 
-                        <div class="mt-6">
+                        <div class="mt-3">
                             <a href="{{ route('tours.show', $tour->id) }}" 
-                               class="bg-blue-500 text-black px-4 py-2 rounded mt-2 inline-block">
+                               class="bg-blue-500 text-black px-3 py-1.5 rounded text-xs inline-block">
                                 Ver detalles
                             </a>
                             <br>
                             <button onclick="openModal('modal-{{ $tour->id }}')"
                                style="background-color: #22c55e;"
-                               class="!text-white px-4 py-2 rounded-xl shadow-md inline-block mt-2 w-full text-center font-semibold">
+                               class="!text-white px-3 py-1.5 rounded-xl shadow-md inline-block mt-1.5 w-full text-center font-semibold text-xs">
                                 Reservar
                             </button>
                         </div>

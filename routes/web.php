@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\BookingController;
 
 Route::get('/tours', [TourController::class, 'index'])->middleware('auth');
 Route::get('/tours/create', [TourController::class, 'create'])->middleware('auth');
@@ -16,6 +17,21 @@ Route::get('/tours/{tour}/edit', [TourController::class, 'edit'])->middleware('a
 Route::match(['put','patch'], '/tours/{tour}', [TourController::class, 'update'])->middleware('auth')->name('tours.update');
 Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->middleware('auth')->name('tours.destroy');
 Route::get('/tours/{tour}/toggle', [TourController::class, 'toggle'])->middleware('auth')->name('tours.toggle');
+
+// Reservas (usuario)
+Route::middleware('auth')->group(function () {
+    Route::post('/tours/{tour}/book', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/mis-tours', [BookingController::class, 'myTours'])->name('bookings.my-tours');
+    Route::get('/mis-tours/tour/{tour}', [BookingController::class, 'showTour'])->name('bookings.show-tour');
+    Route::get('/mis-tours/{booking}/comprobante', [BookingController::class, 'receipt'])->name('bookings.receipt');
+    Route::get('/mis-tours/{booking}/imagen', [BookingController::class, 'receiptImage'])->name('bookings.receipt-image');
+});
+
+// Administración (admin)
+Route::middleware('auth')->group(function () {
+    Route::get('/administracion', [BookingController::class, 'adminIndex'])->name('admin.index');
+    Route::post('/administracion/reservas/{booking}/aprobar', [BookingController::class, 'approve'])->name('admin.bookings.approve');
+});
 
 // Cuentas bancarias (admin)
 Route::middleware('auth')->group(function () {

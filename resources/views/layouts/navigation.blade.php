@@ -15,6 +15,18 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @if(auth()->user()->role === 'user')
+                        <x-nav-link :href="route('bookings.my-tours')" :active="request()->routeIs('bookings.my-tours')">
+                            Mis tours
+                        </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->role === 'admin')
+                        <x-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.index')">
+                            Administración
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -70,6 +82,18 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if(auth()->user()->role === 'user')
+                <x-responsive-nav-link :href="route('bookings.my-tours')" :active="request()->routeIs('bookings.my-tours')">
+                    Mis tours
+                </x-responsive-nav-link>
+            @endif
+
+            @if(auth()->user()->role === 'admin')
+                <x-responsive-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.index')">
+                    Administración
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

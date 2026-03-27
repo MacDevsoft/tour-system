@@ -92,26 +92,29 @@
                                 </div>
                                 @endif
 
-                                <div class="mb-3">
-                                    <label class="block text-xs font-semibold mb-1 text-gray-600">📎 Comprobante de pago</label>
-                                    <input type="file" accept="image/*"
-                                           class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-500">
-                                </div>
+                                <form action="{{ route('bookings.store', $tour->id) }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label class="block text-xs font-semibold mb-1 text-gray-600">📎 Comprobante de pago</label>
+                                        <input type="file" name="receipt" accept="image/*" required
+                                               class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-500">
+                                    </div>
 
-                                <p class="text-xs text-gray-400 mb-4 leading-4">
-                                    Las transferencias pueden tardar hasta <strong>24 horas en días hábiles</strong>. El equipo verificará tu pago y confirmará tu reserva.
-                                </p>
+                                    <p class="text-xs text-gray-400 mb-4 leading-4">
+                                        Las transferencias pueden tardar hasta <strong>24 horas en días hábiles</strong>. El equipo verificará tu pago y confirmará tu reserva.
+                                    </p>
 
-                                <div class="flex gap-2">
-                                    <button style="background-color: #22c55e;"
-                                            class="!text-white px-2 py-1 rounded-lg text-xs font-semibold flex-1">
-                                        Solicitar
-                                    </button>
-                                    <button onclick="closeModal('modal-{{ $tour->id }}')"
-                                            class="bg-gray-100 text-gray-600 px-2 py-1 rounded-lg text-xs">
-                                        Cancelar
-                                    </button>
-                                </div>
+                                    <div class="flex gap-2">
+                                        <button type="submit" style="background-color: #22c55e;"
+                                                class="!text-white px-2 py-1 rounded-lg text-xs font-semibold flex-1">
+                                            Solicitar
+                                        </button>
+                                        <button type="button" onclick="closeModal('modal-{{ $tour->id }}')"
+                                                class="bg-gray-100 text-gray-600 px-2 py-1 rounded-lg text-xs">
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
 

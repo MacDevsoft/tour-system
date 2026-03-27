@@ -22,5 +22,10 @@ class Tour extends Model
     'cupos_disponibles',
     'is_enabled',
 ];
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }
 

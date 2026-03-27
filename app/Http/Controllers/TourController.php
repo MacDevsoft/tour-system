@@ -142,4 +142,18 @@ class TourController extends Controller
 
         return redirect('/tours')->with('status', 'Tour eliminado correctamente');
     }
+
+    /**
+     * Toggle tour enabled/disabled status
+     */
+    public function toggle(Tour $tour)
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $tour->update(['is_enabled' => !$tour->is_enabled]);
+
+        return back()->with('status', $tour->is_enabled ? 'Tour habilitado' : 'Tour deshabilitado');
+    }
 }

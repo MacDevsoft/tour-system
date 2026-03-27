@@ -14,9 +14,7 @@ Route::get('/tours/{tour}', [TourController::class, 'show'])->middleware('auth')
 Route::get('/tours/{tour}/edit', [TourController::class, 'edit'])->middleware('auth')->name('tours.edit');
 Route::match(['put','patch'], '/tours/{tour}', [TourController::class, 'update'])->middleware('auth')->name('tours.update');
 Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->middleware('auth')->name('tours.destroy');
-Route::get('/tours/{tour}/edit', [TourController::class, 'edit'])->middleware('auth')->name('tours.edit');
-Route::match(['put','patch'], '/tours/{tour}', [TourController::class, 'update'])->middleware('auth')->name('tours.update');
-Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->middleware('auth')->name('tours.destroy');
+Route::get('/tours/{tour}/toggle', [TourController::class, 'toggle'])->middleware('auth')->name('tours.toggle');
 
 
 

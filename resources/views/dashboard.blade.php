@@ -27,7 +27,7 @@
         <h3 class="text-2xl font-bold mb-6">Tours Disponibles</h3>
         
         @php
-            $tours = \App\Models\Tour::all();
+            $tours = \App\Models\Tour::where('is_enabled', true)->get();
         @endphp
 
         @if($tours->count() > 0)

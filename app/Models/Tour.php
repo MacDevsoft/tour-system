@@ -20,6 +20,7 @@ class Tour extends Model
     'capacidad',
     'cupos_totales',
     'cupos_disponibles',
+    'is_enabled',
 ];
 }
 

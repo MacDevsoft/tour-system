@@ -39,8 +39,14 @@
                 @endif
                 @if(auth()->check() && auth()->user()->role === 'admin')
                     <a href="{{ route('tours.edit', $tour->id) }}" class="bg-yellow-400 text-black px-4 py-2 rounded inline-block ml-2">Editar</a>
+                    <a href="{{ route('tours.toggle', $tour->id) }}" 
+                       style="@if($tour->is_enabled) background-color: #dc2626; @else background-color: #16a34a; @endif"
+                       class="text-white px-4 py-2 rounded inline-block ml-2">
+                        @if($tour->is_enabled) Deshabilitar @else Habilitar @endif
+                    </a>
+                @else
+                    <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded inline-block ml-2">Reservar</a>
                 @endif
-                <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded inline-block ml-2">Reservar</a>
             </div>
         </div>
     </div>

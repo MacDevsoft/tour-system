@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $tour->nombre }}</h2>
+        <h2 class="font-semibold text-xl text-white leading-tight">{{ $tour->nombre }}</h2>
     </x-slot>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="overflow-hidden shadow-sm sm:rounded-lg p-6" style="background-color:#111827;">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold">Detalle de mis reservas</h3>
+                    <h3 class="text-2xl font-bold text-white">Detalle de mis reservas</h3>
                     <a href="{{ route('bookings.my-tours') }}" class="bg-gray-200 text-black px-4 py-2 rounded">Volver</a>
                 </div>
 
@@ -18,6 +18,7 @@
                             <table class="w-full text-sm text-gray-700">
                                 <thead class="bg-gray-100 text-gray-800">
                                     <tr>
+                                        <th class="px-4 py-3 font-semibold text-center">#</th>
                                         <th class="px-4 py-3 font-semibold text-center">ID compra</th>
                                         <th class="px-4 py-3 font-semibold text-center">Monto</th>
                                         <th class="px-4 py-3 font-semibold text-center">Fecha</th>
@@ -28,6 +29,7 @@
                                 <tbody class="bg-white divide-y divide-gray-100">
                                     @foreach($pendingBookings as $booking)
                                         <tr>
+                                            <td class="px-4 py-3 font-medium text-center align-middle">{{ $loop->iteration }}</td>
                                             <td class="px-4 py-3 font-medium text-center align-middle">{{ $booking->purchase_id }}</td>
                                             <td class="px-4 py-3 text-center align-middle">${{ number_format($booking->amount_paid, 2) }}</td>
                                             <td class="px-4 py-3 text-center align-middle">{{ $booking->created_at->format('d/m/Y H:i') }}</td>
@@ -54,6 +56,7 @@
                             <table class="w-full text-sm text-gray-700">
                                 <thead class="bg-gray-100 text-gray-800">
                                     <tr>
+                                        <th class="px-4 py-3 font-semibold text-center">#</th>
                                         <th class="px-4 py-3 font-semibold text-center">ID compra</th>
                                         <th class="px-4 py-3 font-semibold text-center">Monto</th>
                                         <th class="px-4 py-3 font-semibold text-center">Fecha</th>
@@ -64,6 +67,7 @@
                                 <tbody class="bg-white divide-y divide-gray-100">
                                     @foreach($approvedBookings as $booking)
                                         <tr>
+                                            <td class="px-4 py-3 font-medium text-center align-middle">{{ $loop->iteration }}</td>
                                             <td class="px-4 py-3 font-medium text-center align-middle">{{ $booking->purchase_id }}</td>
                                             <td class="px-4 py-3 text-center align-middle">${{ number_format($booking->amount_paid, 2) }}</td>
                                             <td class="px-4 py-3 text-center align-middle">{{ $booking->created_at->format('d/m/Y H:i') }}</td>

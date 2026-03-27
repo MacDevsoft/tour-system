@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-white leading-tight">
             Tours
         </h2>
     </x-slot>
@@ -12,6 +12,8 @@
     </div>
 
 <div class="p-10">
+    <div class="overflow-hidden shadow-sm sm:rounded-lg p-8" style="background-color:#111827;">
+    <h3 class="text-2xl font-bold text-white text-left mb-8">Tours disponibles</h3>
     <div class="flex flex-wrap justify-center gap-12 max-w-6xl mx-auto">
 
         @foreach($tours as $tour)
@@ -43,6 +45,7 @@
             </div>
         @endforeach
 
+    </div>
     </div>
 </div>
 

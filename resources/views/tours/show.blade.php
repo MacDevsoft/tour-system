@@ -1,17 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-white leading-tight">
             Detalle del Tour
         </h2>
     </x-slot>
 
     <div class="p-6 max-w-4xl mx-auto">
-        <div class="bg-white border border-gray-200 rounded-xl shadow-md p-6">
-            <h1 class="text-2xl font-bold mb-4">{{ $tour->nombre }}</h1>
+        <div class="border border-gray-700 rounded-xl shadow-md p-6" style="background-color:#111827;">
+            <h1 class="text-2xl font-bold mb-4 text-white">{{ $tour->nombre }}</h1>
 
-            <p class="text-gray-700 mb-4">{{ $tour->descripcion }}</p>
+            <p class="text-gray-300 mb-4">{{ $tour->descripcion }}</p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
                 <div class="space-y-2">
                     <p><span class="font-semibold">Precio total:</span> ${{ number_format($tour->precio_total, 2) }}</p>
                     <p><span class="font-semibold">Anticipo:</span> ${{ number_format($tour->anticipo ?? 0, 2) }}</p>

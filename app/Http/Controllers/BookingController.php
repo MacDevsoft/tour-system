@@ -21,13 +21,29 @@ class BookingController extends Controller
 
         $request->validate([
             'receipt' => 'required|image|max:5120',
+            'confirm_additional' => 'nullable|boolean',
+            'passenger_name' => 'nullable|string|max:120',
         ]);
+
+        $alreadyBooked = Booking::where('user_id', auth()->id())
+            ->where('tour_id', $tour->id)
+            ->exists();
+
+        if ($alreadyBooked && !$request->boolean('confirm_additional')) {
+            return back()->with('status', 'Ya te encuentras registrado en este tour. Si deseas agregar otra persona, confirma al reservar nuevamente.');
+        }
+
+        $passengerName = trim((string) $request->input('passenger_name', ''));
+        if ($passengerName === '') {
+            $passengerName = auth()->user()->name;
+        }
 
         $receiptPath = $request->file('receipt')->store('receipts', 'public');
 
         $booking = Booking::create([
             'user_id' => auth()->id(),
             'tour_id' => $tour->id,
+            'passenger_name' => $passengerName,
             'purchase_id' => 'RES-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -6)),
             'amount_paid' => (float) ($tour->anticipo ?? 0),
             'receipt_path' => $receiptPath,
@@ -45,7 +61,7 @@ class BookingController extends Controller
 
         $bookings = Booking::with('tour')
             ->where('user_id', auth()->id())
-            ->latest()
+            ->oldest()
             ->get();
 
         $tourGroups = $bookings->groupBy('tour_id');
@@ -62,7 +78,7 @@ class BookingController extends Controller
         $bookings = Booking::with('tour')
             ->where('user_id', auth()->id())
             ->where('tour_id', $tour->id)
-            ->latest()
+            ->oldest()
             ->get();
 
         if ($bookings->isEmpty()) {
@@ -107,7 +123,7 @@ class BookingController extends Controller
                 $bookings = Booking::with(['tour', 'user'])
                     ->where('tour_id', $selectedTour->id)
                     ->where('status', $status)
-                    ->latest()
+                    ->oldest()
                     ->get();
             }
         }

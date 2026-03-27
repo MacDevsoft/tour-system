@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-white leading-tight">
             Cuentas Bancarias
         </h2>
     </x-slot>
 
-    <div class="p-6 max-w-4xl mx-auto">
+    <div class="mt-6 p-6 max-w-4xl mx-auto rounded-xl" style="background-color:#111827;">
 
         @if(session('status'))
             <div id="bank-status-alert" class="bg-green-100 text-green-800 px-4 py-2 rounded mb-4 transition-opacity duration-500">
@@ -14,7 +14,7 @@
         @endif
 
         <div class="flex items-center gap-3 mb-6">
-            <h3 class="text-xl font-bold">Cuentas registradas</h3>
+            <h3 class="text-xl font-bold text-white">Cuentas registradas</h3>
             <a href="{{ route('bank_accounts.create') }}" style="background-color: #16a34a;" class="!text-white px-4 py-1 rounded">+ Agregar Cuenta</a>
         </div>
 
@@ -51,11 +51,11 @@
                 @endforeach
             </div>
         @else
-            <p class="text-gray-500">No hay cuentas bancarias registradas.</p>
+            <p class="text-gray-300">No hay cuentas bancarias registradas.</p>
         @endif
 
         <div class="mt-6">
-            <a href="/dashboard" class="text-gray-500 hover:underline text-sm">← Volver al dashboard</a>
+            <a href="/dashboard" class="text-gray-300 hover:underline text-sm">← Volver al dashboard</a>
         </div>
     </div>
 

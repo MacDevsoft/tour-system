@@ -24,6 +24,10 @@ class TourController extends Controller
      */
     public function create()
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
         return view('tours.create');
     }
 
@@ -32,6 +36,10 @@ class TourController extends Controller
      */
     public function store(Request $request)
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
         Tour::create([
         'nombre' => $request->nombre,
         'descripcion' => $request->descripcion,
@@ -64,6 +72,10 @@ class TourController extends Controller
      */
     public function edit(Tour $tour)
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
         return view('tours.edit', compact('tour'));
     }
 
@@ -72,6 +84,10 @@ class TourController extends Controller
      */
     public function update(Request $request, Tour $tour)
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
@@ -118,6 +134,10 @@ class TourController extends Controller
      */
     public function destroy(Tour $tour)
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
         $tour->delete();
 
         return redirect('/tours')->with('status', 'Tour eliminado correctamente');

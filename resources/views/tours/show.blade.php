@@ -32,8 +32,14 @@
             </div>
 
             <div class="mt-6">
-                <a href="/tours" class="bg-gray-200 text-black px-4 py-2 rounded inline-block">Volver</a>
-                <a href="{{ route('tours.edit', $tour->id) }}" class="bg-yellow-400 text-black px-4 py-2 rounded inline-block ml-2">Editar</a>
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <a href="/tours" class="bg-gray-200 text-black px-4 py-2 rounded inline-block">Volver</a>
+                @else
+                    <a href="/dashboard" class="bg-gray-200 text-black px-4 py-2 rounded inline-block">Volver</a>
+                @endif
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <a href="{{ route('tours.edit', $tour->id) }}" class="bg-yellow-400 text-black px-4 py-2 rounded inline-block ml-2">Editar</a>
+                @endif
                 <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded inline-block ml-2">Reservar</a>
             </div>
         </div>

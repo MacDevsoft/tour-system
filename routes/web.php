@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\TourController;
+use App\Http\Controllers\BankAccountController;
 
 Route::get('/tours', [TourController::class, 'index'])->middleware('auth');
 Route::get('/tours/create', [TourController::class, 'create'])->middleware('auth');
@@ -15,6 +16,18 @@ Route::get('/tours/{tour}/edit', [TourController::class, 'edit'])->middleware('a
 Route::match(['put','patch'], '/tours/{tour}', [TourController::class, 'update'])->middleware('auth')->name('tours.update');
 Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->middleware('auth')->name('tours.destroy');
 Route::get('/tours/{tour}/toggle', [TourController::class, 'toggle'])->middleware('auth')->name('tours.toggle');
+
+// Cuentas bancarias (admin)
+Route::middleware('auth')->group(function () {
+    Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank_accounts.index');
+    Route::get('/bank-accounts/create', [BankAccountController::class, 'create'])->name('bank_accounts.create');
+    Route::post('/bank-accounts', [BankAccountController::class, 'store'])->name('bank_accounts.store');
+    Route::get('/bank-accounts/{bank_account}/edit', [BankAccountController::class, 'edit'])->name('bank_accounts.edit');
+    Route::patch('/bank-accounts/{bank_account}', [BankAccountController::class, 'update'])->name('bank_accounts.update');
+    Route::delete('/bank-accounts/{bank_account}', [BankAccountController::class, 'destroy'])->name('bank_accounts.destroy');
+    Route::get('/bank-accounts/{bank_account}/activate', [BankAccountController::class, 'activate'])->name('bank_accounts.activate');
+    Route::get('/bank-accounts/{bank_account}/deactivate', [BankAccountController::class, 'deactivate'])->name('bank_accounts.deactivate');
+});
 
 
 

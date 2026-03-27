@@ -21,6 +21,9 @@
         <a href="/tours" class="bg-blue-600 !text-white px-4 py-2 rounded shadow inline-block">
             Ver / Editar Tours
         </a>
+        <a href="{{ route('bank_accounts.index') }}" class="bg-gray-700 !text-white px-4 py-2 rounded shadow inline-block">
+            🏦 Cuentas Bancarias
+        </a>
     </div>
 @else
     <div class="p-6">
@@ -56,11 +59,60 @@
                                 Ver detalles
                             </a>
                             <br>
-                            <a href="#" 
+                            <button onclick="openModal('modal-{{ $tour->id }}')"
                                style="background-color: #22c55e;"
                                class="!text-white px-4 py-2 rounded-xl shadow-md inline-block mt-2 w-full text-center font-semibold">
                                 Reservar
-                            </a>
+                            </button>
+                        </div>
+
+                        {{-- Modal de Reserva --}}
+                        @php $bank = \App\Models\BankAccount::active(); @endphp
+                        <div id="modal-{{ $tour->id }}" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center p-8">
+                            <div class="modal-box bg-white rounded-2xl shadow-xl p-6 w-72">
+                                <h3 class="text-base font-bold text-gray-800">Solicitar Reservación</h3>
+                                <p class="text-gray-400 text-xs mb-3">{{ $tour->nombre }}</p>
+
+                                <div class="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 mb-3">
+                                    <p class="text-xs text-blue-600 font-semibold">Anticipo a pagar</p>
+                                    <p class="text-lg font-bold text-blue-700">${{ number_format($tour->anticipo ?? 0, 2) }}</p>
+                                </div>
+
+                                @if($bank)
+                                <div class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 mb-3 space-y-0.5">
+                                    <p class="text-xs font-bold text-gray-600 mb-1">Datos bancarios</p>
+                                    <p class="text-xs text-gray-500">{{ $bank->account_type }}</p>
+                                    <p class="text-xs text-gray-500"><span class="font-medium">Banco:</span> {{ $bank->bank_name }}</p>
+                                    <p class="text-xs text-gray-500"><span class="font-medium">Cuenta:</span> {{ $bank->account_number }}</p>
+                                    <p class="text-xs text-gray-500"><span class="font-medium">Titular:</span> {{ $bank->account_holder }}</p>
+                                </div>
+                                @else
+                                <div class="bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2 mb-3">
+                                    <p class="text-xs text-yellow-600">⚠️ Sin cuenta bancaria configurada.</p>
+                                </div>
+                                @endif
+
+                                <div class="mb-3">
+                                    <label class="block text-xs font-semibold mb-1 text-gray-600">📎 Comprobante de pago</label>
+                                    <input type="file" accept="image/*"
+                                           class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-500">
+                                </div>
+
+                                <p class="text-xs text-gray-400 mb-4 leading-4">
+                                    Las transferencias pueden tardar hasta <strong>24 horas en días hábiles</strong>. El equipo verificará tu pago y confirmará tu reserva.
+                                </p>
+
+                                <div class="flex gap-2">
+                                    <button style="background-color: #22c55e;"
+                                            class="!text-white px-2 py-1 rounded-lg text-xs font-semibold flex-1">
+                                        Solicitar
+                                    </button>
+                                    <button onclick="closeModal('modal-{{ $tour->id }}')"
+                                            class="bg-gray-100 text-gray-600 px-2 py-1 rounded-lg text-xs">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -76,4 +128,40 @@
             </div>
         </div>
     </div>
+
+<style>
+    .modal-overlay {
+        background-color: rgba(0,0,0,0);
+        transition: background-color 0.25s ease;
+    }
+    .modal-overlay.open {
+        background-color: rgba(0,0,0,0.75);
+    }
+    .modal-box {
+        transform: scale(0.85) translateY(20px);
+        opacity: 0;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+    .modal-overlay.open .modal-box {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+</style>
+
+<script>
+    function openModal(id) {
+        const overlay = document.getElementById(id);
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        requestAnimationFrame(() => overlay.classList.add('open'));
+    }
+    function closeModal(id) {
+        const overlay = document.getElementById(id);
+        overlay.classList.remove('open');
+        setTimeout(() => {
+            overlay.classList.remove('flex');
+            overlay.classList.add('hidden');
+        }, 250);
+    }
+</script>
 </x-app-layout>

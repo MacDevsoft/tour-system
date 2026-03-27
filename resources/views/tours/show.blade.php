@@ -45,7 +45,7 @@
                         @if($tour->is_enabled) Deshabilitar @else Habilitar @endif
                     </a>
                 @else
-                    <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded inline-block ml-2">Reservar</a>
+                    <a href="#" style="background-color: #22c55e;" class="text-white px-4 py-2 rounded inline-block ml-2">Reservar</a>
                 @endif
             </div>
         </div>

@@ -33,6 +33,7 @@
 
             <div class="mt-6">
                 <a href="/tours" class="bg-gray-200 text-black px-4 py-2 rounded inline-block">Volver</a>
+                <a href="{{ route('tours.edit', $tour->id) }}" class="bg-yellow-400 text-black px-4 py-2 rounded inline-block ml-2">Editar</a>
                 <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded inline-block ml-2">Reservar</a>
             </div>
         </div>

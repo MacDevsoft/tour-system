@@ -37,6 +37,7 @@
                        class="bg-blue-500 text-black px-4 py-2 rounded mt-2 inline-block">
                         Ver detalles
                     </a>
+                    
                 </div>
 
             </div>

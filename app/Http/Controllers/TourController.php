@@ -64,7 +64,7 @@ class TourController extends Controller
      */
     public function edit(Tour $tour)
     {
-        //
+        return view('tours.edit', compact('tour'));
     }
 
     /**
@@ -72,7 +72,45 @@ class TourController extends Controller
      */
     public function update(Request $request, Tour $tour)
     {
-        //
+        $data = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'precio_total' => 'nullable|numeric',
+            'anticipo' => 'nullable|numeric',
+            'capacidad' => 'nullable|integer',
+            'ubicacion' => 'nullable|string',
+            'punto_encuentro' => 'nullable|string',
+            'hora_salida' => 'nullable|string',
+            'transporte' => 'nullable|string',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date',
+        ]);
+
+        $tour->update([
+            'nombre' => $data['nombre'],
+            'descripcion' => $data['descripcion'] ?? $tour->descripcion,
+            'precio_total' => $data['precio_total'] ?? $tour->precio_total,
+            'anticipo' => $data['anticipo'] ?? $tour->anticipo,
+            'capacidad' => $data['capacidad'] ?? $tour->capacidad,
+            'cupos_totales' => $data['capacidad'] ?? $tour->cupos_totales,
+            'ubicacion' => $data['ubicacion'] ?? $tour->ubicacion,
+            'punto_encuentro' => $data['punto_encuentro'] ?? $tour->punto_encuentro,
+            'hora_salida' => $data['hora_salida'] ?? $tour->hora_salida,
+            'transporte' => $data['transporte'] ?? $tour->transporte,
+            'fecha_inicio' => $data['fecha_inicio'] ?? $tour->fecha_inicio,
+            'fecha_fin' => $data['fecha_fin'] ?? $tour->fecha_fin,
+        ]);
+
+        // Ajustar cupos_disponibles si la capacidad disminuyó
+        if (isset($data['capacidad'])) {
+            $newCap = (int) $data['capacidad'];
+            if ($tour->cupos_disponibles > $newCap) {
+                $tour->cupos_disponibles = $newCap;
+                $tour->save();
+            }
+        }
+
+        return redirect()->route('tours.show', $tour->id)->with('status', 'Tour actualizado correctamente');
     }
 
     /**
@@ -80,6 +118,8 @@ class TourController extends Controller
      */
     public function destroy(Tour $tour)
     {
-        //
+        $tour->delete();
+
+        return redirect('/tours')->with('status', 'Tour eliminado correctamente');
     }
 }

@@ -11,6 +11,12 @@ Route::get('/tours/create', [TourController::class, 'create'])->middleware('auth
 Route::post('/tours', [TourController::class, 'store'])->middleware('auth');
 
 Route::get('/tours/{tour}', [TourController::class, 'show'])->middleware('auth')->name('tours.show');
+Route::get('/tours/{tour}/edit', [TourController::class, 'edit'])->middleware('auth')->name('tours.edit');
+Route::match(['put','patch'], '/tours/{tour}', [TourController::class, 'update'])->middleware('auth')->name('tours.update');
+Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->middleware('auth')->name('tours.destroy');
+Route::get('/tours/{tour}/edit', [TourController::class, 'edit'])->middleware('auth')->name('tours.edit');
+Route::match(['put','patch'], '/tours/{tour}', [TourController::class, 'update'])->middleware('auth')->name('tours.update');
+Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->middleware('auth')->name('tours.destroy');
 
 
 

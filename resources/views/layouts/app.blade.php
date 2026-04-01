@@ -41,18 +41,56 @@
         </div>
 
         @php
-            $paymentApprovedAlerts = collect();
+            $paymentApprovedAlertsData = collect();
 
-            if (auth()->check() && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
-                $paymentApprovedAlerts = auth()->user()
-                    ->unreadNotifications()
-                    ->where('type', \App\Notifications\PaymentApprovedNotification::class)
-                    ->latest()
-                    ->take(4)
-                    ->get();
+            if (auth()->check()) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                    $paymentApprovedAlerts = auth()->user()
+                        ->unreadNotifications()
+                        ->where('type', \App\Notifications\PaymentApprovedNotification::class)
+                        ->latest()
+                        ->take(4)
+                        ->get();
 
-                if ($paymentApprovedAlerts->isNotEmpty()) {
-                    $paymentApprovedAlerts->markAsRead();
+                    $paymentApprovedAlertsData = $paymentApprovedAlerts->map(function ($item) {
+                        return array_merge($item->data ?? [], [
+                            'notification_id' => $item->id,
+                        ]);
+                    });
+
+                    if ($paymentApprovedAlerts->isNotEmpty()) {
+                        $paymentApprovedAlerts->markAsRead();
+                    }
+                }
+
+                if (\Illuminate\Support\Facades\Schema::hasTable('booking_payments')) {
+                    $fallbackApprovedPayments = \App\Models\BookingPayment::with('booking.tour')
+                        ->where('status', 'approved')
+                        ->whereNotNull('approved_at')
+                        ->whereHas('booking', fn ($query) => $query->where('user_id', auth()->id()))
+                        ->latest('approved_at')
+                        ->take(4)
+                        ->get()
+                        ->map(function ($payment) {
+                            return [
+                                'title' => 'Tu pago fue aceptado',
+                                'message' => 'Se aprobó tu comprobante y tu avance se actualizó correctamente.',
+                                'payment_id' => $payment->id,
+                                'payment_reference' => $payment->reference,
+                                'amount' => (float) $payment->amount,
+                                'tour_name' => optional(optional($payment->booking)->tour)->nombre,
+                                'approved_at' => optional($payment->approved_at)->format('d/m/Y H:i'),
+                                'url' => $payment->booking
+                                    ? route('bookings.my-tours', ['tour_id' => $payment->booking->tour_id, 'booking_id' => $payment->booking->id])
+                                    : route('bookings.my-tours'),
+                            ];
+                        });
+
+                    $paymentApprovedAlertsData = $paymentApprovedAlertsData
+                        ->concat($fallbackApprovedPayments)
+                        ->unique(fn ($item) => ($item['payment_reference'] ?? '') . '|' . ($item['approved_at'] ?? ''))
+                        ->take(4)
+                        ->values();
                 }
             }
         @endphp
@@ -68,7 +106,7 @@
                 return;
             }
 
-            const paymentApprovedAlerts = @json($paymentApprovedAlerts->map(fn ($item) => $item->data)->values());
+            const paymentApprovedAlerts = @json($paymentApprovedAlertsData);
 
             function renderPaymentToast(alert, index) {
                 const stack = document.getElementById('payment-toast-stack');
@@ -147,9 +185,33 @@
                 showNotification();
             }
 
+            function paymentAlertSeenKey(alert) {
+                return `payment-ok-${alert.payment_reference || alert.payment_id || 'unknown'}-${alert.approved_at || 'unknown'}`;
+            }
+
             if (Array.isArray(paymentApprovedAlerts) && paymentApprovedAlerts.length > 0) {
                 paymentApprovedAlerts.forEach((alert, index) => {
+                    const seenKey = paymentAlertSeenKey(alert);
+                    let alreadySeen = false;
+
+                    try {
+                        alreadySeen = localStorage.getItem(seenKey) === '1';
+                    } catch (error) {
+                        alreadySeen = false;
+                    }
+
+                    if (alreadySeen) {
+                        return;
+                    }
+
                     renderPaymentToast(alert, index);
+
+                    try {
+                        localStorage.setItem(seenKey, '1');
+                    } catch (error) {
+                        // Ignore storage restrictions in private browsing modes.
+                    }
+
                     if (index === 0) {
                         pushBrowserPaymentNotification(alert);
                     }

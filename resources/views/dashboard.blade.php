@@ -483,6 +483,7 @@
     const bookingConfirmAccept = document.getElementById('booking-confirm-accept');
     const bookingConfirmCancel = document.getElementById('booking-confirm-cancel');
     let bookingConfirmResolver = null;
+    let bookingConfirmInProgress = false;
 
     function showBookingConfirmModal() {
         return new Promise((resolve) => {
@@ -549,20 +550,33 @@
 
     document.querySelectorAll('.reserve-form').forEach((form) => {
         form.addEventListener('submit', async (event) => {
+            if (form.dataset.submitting === '1') {
+                event.preventDefault();
+                return;
+            }
+
             const alreadyBooked = form.dataset.alreadyBooked === '1';
             const confirmInput = form.querySelector('.confirm-additional-input');
 
             if (!alreadyBooked || !confirmInput || confirmInput.value === '1') {
+                form.dataset.submitting = '1';
                 return;
             }
 
             event.preventDefault();
+
+            if (bookingConfirmInProgress) {
+                return;
+            }
+
+            bookingConfirmInProgress = true;
 
             if (typeof hideGlobalLoader === 'function') {
                 hideGlobalLoader();
             }
 
             const proceed = await showBookingConfirmModal();
+            bookingConfirmInProgress = false;
 
             if (!proceed) {
                 const overlay = form.closest('.modal-overlay');
@@ -578,6 +592,7 @@
             }
 
             confirmInput.value = '1';
+            form.dataset.submitting = '1';
 
             if (typeof hideGlobalLoader === 'function') {
                 hideGlobalLoader();

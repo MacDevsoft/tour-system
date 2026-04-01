@@ -30,6 +30,14 @@ class BookingController extends Controller
             ->where('tour_id', $tour->id)
             ->exists();
 
+        $bookingsCountForTour = Booking::where('user_id', auth()->id())
+            ->where('tour_id', $tour->id)
+            ->count();
+
+        if ($bookingsCountForTour >= 4) {
+            return back()->with('status', 'Solo puedes registrar hasta 4 personas por tour (incluyendote).');
+        }
+
         if ($alreadyBooked && !$request->boolean('confirm_additional')) {
             return back()->with('status', 'Ya te encuentras registrado en este tour. Si deseas agregar otra persona, confirma al reservar nuevamente.');
         }

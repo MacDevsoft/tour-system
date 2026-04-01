@@ -5,7 +5,7 @@
 
     <div class="py-6">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
-            <div class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+            <div id="booking-digital-receipt" class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
                 <div class="relative h-36 overflow-hidden border-b border-gray-900" style="background: linear-gradient(125deg, #162046 0%, #233b7a 45%, #271247 100%);">
                     <div class="absolute -left-10 top-8 h-24 w-24 rounded-full bg-cyan-400/20 blur-2xl"></div>
                     <div class="absolute right-0 top-0 h-20 w-20 rounded-full bg-fuchsia-400/20 blur-2xl"></div>
@@ -28,6 +28,7 @@
 
                             <div class="mt-3 space-y-1.5 text-sm text-slate-700">
                                 <p><span class="font-semibold">ID de compra:</span> {{ $booking->purchase_id }}</p>
+                                <p><span class="font-semibold">Código digital:</span> {{ $booking->digital_receipt_code ?? 'Pendiente' }}</p>
                                 @if(!empty($booking->passenger_name))
                                     <p><span class="font-semibold">Persona registrada:</span> {{ $booking->passenger_name }}</p>
                                 @endif
@@ -60,6 +61,21 @@
                             </div>
                         @endif
 
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                            <p class="text-sm font-semibold text-slate-700">Descargar o compartir comprobante</p>
+                            <p class="mt-1 text-xs text-slate-500">Configurado para compartir al número <strong>55 3156 6578</strong>.</p>
+                            <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                                <button type="button" onclick="downloadDigitalReceiptImage('booking-digital-receipt', 'comprobante-digital-reserva-{{ $booking->purchase_id }}.png')"
+                                        class="rounded-xl bg-slate-800 px-4 py-2 text-center text-sm font-bold text-white">
+                                    Descargar comprobante
+                                </button>
+                                <button type="button" onclick="shareBookingReceiptViaWhatsApp()"
+                                        class="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white">
+                                    Compartir por WhatsApp
+                                </button>
+                            </div>
+                        </div>
+
                         <a href="{{ route('bookings.my-tours', ['tour_id' => $booking->tour_id]) }}"
                            class="block w-full rounded-xl px-4 py-2.5 text-center text-base font-bold text-white shadow-lg"
                            style="background: linear-gradient(90deg, #34d399 0%, #3b82f6 100%);">
@@ -70,4 +86,72 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+        async function buildDigitalReceiptFile(elementId, filename) {
+            const element = document.getElementById(elementId);
+            if (!element || typeof html2canvas === 'undefined') {
+                throw new Error('No se pudo generar la imagen del comprobante digital.');
+            }
+
+            const canvas = await html2canvas(element, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+            });
+
+            return new Promise((resolve, reject) => {
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        reject(new Error('No se pudo crear la imagen del comprobante.'));
+                        return;
+                    }
+
+                    resolve(new File([blob], filename, { type: 'image/png' }));
+                }, 'image/png');
+            });
+        }
+
+        async function downloadDigitalReceiptImage(elementId, filename) {
+            try {
+                const file = await buildDigitalReceiptFile(elementId, filename);
+                const url = URL.createObjectURL(file);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('No se pudo descargar la imagen del comprobante digital.');
+            }
+        }
+
+        async function shareBookingReceiptViaWhatsApp() {
+            const whatsappNumber = '525531566578';
+            const message = @json("Comprobante digital de reserva\nTour: " . $booking->tour->nombre . "\nID de compra: " . $booking->purchase_id . "\nCódigo digital: " . ($booking->digital_receipt_code ?? 'N/D') . "\nAnticipo: $" . number_format($booking->amount_paid, 2) . "\nFecha: " . $booking->created_at->format('d/m/Y H:i') . "\nEstado: Pendiente de aprobación");
+
+            if (navigator.share && navigator.canShare) {
+                try {
+                    const file = await buildDigitalReceiptFile('booking-digital-receipt', 'comprobante-digital-reserva-{{ $booking->purchase_id }}.png');
+
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            title: 'Comprobante de reserva',
+                            text: message,
+                            files: [file],
+                        });
+                        return;
+                    }
+                } catch (error) {
+                    // fallback a WhatsApp con texto
+                }
+            }
+
+            const shareText = `${message}\n${window.location.href}`;
+            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(shareText)}`, '_blank');
+        }
+    </script>
 </x-app-layout>

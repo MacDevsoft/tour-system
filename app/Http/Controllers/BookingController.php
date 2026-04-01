@@ -69,6 +69,8 @@ class BookingController extends Controller
 
         $bookings->each(function (Booking $booking) {
             $this->touchBookingPlan($booking);
+            $booking->ensureDigitalReceiptMetadata();
+            $booking->payments->each->ensureDigitalReceiptMetadata();
         });
 
         $bookings->load(['tour', 'payments']);
@@ -95,6 +97,8 @@ class BookingController extends Controller
 
         $bookings->each(function (Booking $booking) {
             $this->touchBookingPlan($booking);
+            $booking->ensureDigitalReceiptMetadata();
+            $booking->payments->each->ensureDigitalReceiptMetadata();
         });
 
         $bookings->load('payments');
@@ -114,6 +118,8 @@ class BookingController extends Controller
 
         $booking->load(['tour', 'payments']);
         $this->touchBookingPlan($booking);
+        $booking->ensureDigitalReceiptMetadata();
+        $booking->payments->each->ensureDigitalReceiptMetadata();
         $booking->load('payments');
 
         return view('bookings.receipt', compact('booking'));
@@ -126,6 +132,7 @@ class BookingController extends Controller
         }
 
         $payment->load(['booking.tour', 'booking.user']);
+        $payment->ensureDigitalReceiptMetadata();
 
         return view('bookings.payment-receipt', compact('payment'));
     }
@@ -138,6 +145,7 @@ class BookingController extends Controller
 
         $tourId = request('tour_id');
         $status = request('status', 'pending');
+        $paymentSearch = trim((string) request('payment_ref', ''));
 
         if (!in_array($status, ['pending', 'approved', 'rejected'], true)) {
             $status = 'pending';
@@ -147,26 +155,51 @@ class BookingController extends Controller
 
         $bookings = collect();
         $selectedTour = null;
+        $statusCounts = [
+            'pending' => 0,
+            'approved' => 0,
+            'rejected' => 0,
+        ];
 
         if ($tourId) {
             $selectedTour = Tour::find($tourId);
 
             if ($selectedTour) {
-                $bookings = Booking::with(['tour', 'user', 'payments'])
+                $bookingsQuery = Booking::with(['tour', 'user', 'payments'])
                     ->where('tour_id', $selectedTour->id)
-                    ->where('status', $status)
+                    ->where('status', $status);
+
+                if ($paymentSearch !== '') {
+                    $bookingsQuery->where(function ($query) use ($paymentSearch) {
+                        $query->where('purchase_id', 'like', '%' . $paymentSearch . '%')
+                            ->orWhereHas('payments', function ($paymentQuery) use ($paymentSearch) {
+                                $paymentQuery->where('reference', 'like', '%' . $paymentSearch . '%')
+                                    ->orWhere('id', $paymentSearch);
+                            });
+                    });
+                }
+
+                $bookings = $bookingsQuery
                     ->oldest()
                     ->get();
 
                 $bookings->each(function (Booking $booking) {
                     $this->touchBookingPlan($booking);
+                    $booking->ensureDigitalReceiptMetadata();
+                    $booking->payments->each->ensureDigitalReceiptMetadata();
                 });
 
                 $bookings->load('payments');
+
+                $statusCounts = [
+                    'pending' => Booking::where('tour_id', $selectedTour->id)->where('status', 'pending')->count(),
+                    'approved' => Booking::where('tour_id', $selectedTour->id)->where('status', 'approved')->count(),
+                    'rejected' => Booking::where('tour_id', $selectedTour->id)->where('status', 'rejected')->count(),
+                ];
             }
         }
 
-        return view('admin.reservations.index', compact('tours', 'bookings', 'selectedTour', 'status'));
+        return view('admin.reservations.index', compact('tours', 'bookings', 'selectedTour', 'status', 'paymentSearch', 'statusCounts'));
     }
 
     public function showAdminBooking(Booking $booking)
@@ -177,6 +210,8 @@ class BookingController extends Controller
 
         $booking->load(['tour', 'user', 'payments']);
         $this->touchBookingPlan($booking);
+        $booking->ensureDigitalReceiptMetadata();
+        $booking->payments->each->ensureDigitalReceiptMetadata();
         $booking->load('payments');
 
         return view('admin.reservations.show', compact('booking'));
@@ -213,6 +248,44 @@ class BookingController extends Controller
         $this->touchBookingPlan($booking);
 
         return back()->with('status', 'Reserva aprobada correctamente y cupo descontado.');
+    }
+
+    public function cancel(Request $request, Booking $booking)
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        if ($booking->status === 'rejected') {
+            return back()->with('status', 'Esta reservación ya se encuentra cancelada.');
+        }
+
+        $data = $request->validate([
+            'cancel_reason' => 'nullable|string|max:255',
+        ]);
+
+        $wasApproved = $booking->status === 'approved';
+        $tour = $booking->tour;
+
+        $booking->update([
+            'status' => 'rejected',
+            'cancelled_at' => now(),
+            'cancellation_reason' => $data['cancel_reason'] ?? ('La reservación de ' . ($booking->passenger_name ?: $booking->user->name) . ' fue cancelada por administración.'),
+        ]);
+
+        $booking->payments()
+            ->whereIn('status', ['pending', 'late', 'submitted'])
+            ->update(['status' => 'cancelled']);
+
+        if ($wasApproved && $tour) {
+            $tour->update([
+                'cupos_disponibles' => min((int) $tour->cupos_totales, ((int) $tour->cupos_disponibles) + 1),
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.bookings.show', $booking->id)
+            ->with('status', 'La reservación fue cancelada correctamente.' . ($wasApproved ? ' Se liberó un cupo.' : ''));
     }
 
     public function submitPayment(Request $request, BookingPayment $payment)
@@ -289,7 +362,14 @@ class BookingController extends Controller
             abort(404);
         }
 
-        return response()->file(storage_path('app/public/' . $booking->receipt_path));
+        $absolutePath = storage_path('app/public/' . $booking->receipt_path);
+
+        if (request()->boolean('download')) {
+            $extension = pathinfo($booking->receipt_path, PATHINFO_EXTENSION) ?: 'jpg';
+            return response()->download($absolutePath, 'comprobante-reserva-' . $booking->purchase_id . '.' . $extension);
+        }
+
+        return response()->file($absolutePath);
     }
 
     public function paymentReceiptImage(BookingPayment $payment)
@@ -309,7 +389,14 @@ class BookingController extends Controller
             abort(404);
         }
 
-        return response()->file(storage_path('app/public/' . $payment->receipt_path));
+        $absolutePath = storage_path('app/public/' . $payment->receipt_path);
+
+        if (request()->boolean('download')) {
+            $extension = pathinfo($payment->receipt_path, PATHINFO_EXTENSION) ?: 'jpg';
+            return response()->download($absolutePath, 'comprobante-pago-' . $payment->reference . '.' . $extension);
+        }
+
+        return response()->file($absolutePath);
     }
 
     protected function touchBookingPlan(Booking $booking): void

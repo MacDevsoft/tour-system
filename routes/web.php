@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/administracion', [BookingController::class, 'adminIndex'])->name('admin.index');
     Route::get('/administracion/reservas/{booking}', [BookingController::class, 'showAdminBooking'])->name('admin.bookings.show');
     Route::post('/administracion/reservas/{booking}/aprobar', [BookingController::class, 'approve'])->name('admin.bookings.approve');
+    Route::post('/administracion/reservas/{booking}/cancelar', [BookingController::class, 'cancel'])->name('admin.bookings.cancel');
     Route::post('/administracion/pagos/{payment}/aprobar', [BookingController::class, 'approvePayment'])->name('admin.payments.approve');
 });
 

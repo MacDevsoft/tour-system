@@ -16,6 +16,19 @@
                     </a>
                 </div>
 
+                <div class="mt-5 grid gap-3 md:grid-cols-2">
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <p class="text-xs uppercase tracking-wide text-slate-400">Usuario titular</p>
+                        <p class="mt-1 text-lg font-bold text-white">{{ $booking->user->name }}</p>
+                        <p class="text-sm text-slate-300">{{ $booking->user->email }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <p class="text-xs uppercase tracking-wide text-slate-400">Persona registrada</p>
+                        <p class="mt-1 text-lg font-bold text-white">{{ $booking->passenger_name ?: $booking->user->name }}</p>
+                        <p class="text-sm text-slate-300">ID de compra: {{ $booking->purchase_id }}</p>
+                    </div>
+                </div>
+
                 @if(session('status'))
                     <div class="mt-4 rounded-lg bg-green-100 px-4 py-2 text-green-700">{{ session('status') }}</div>
                 @endif
@@ -72,15 +85,28 @@
                             @else
                                 <span class="inline-block rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Cancelada</span>
                             @endif
+
+                            @if($booking->status !== 'rejected')
+                                <button type="button" onclick="openCancelBookingModal()" class="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white">
+                                    Cancelar reservación
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-6 overflow-x-auto rounded-xl border border-slate-700">
+                <div class="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <h4 class="text-lg font-bold text-white">Pagos programados</h4>
+                    <input id="admin-payment-detail-filter" type="text" placeholder="Filtrar por ID de pago"
+                           class="w-full md:w-72 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white">
+                </div>
+
+                <div class="mt-3 overflow-x-auto rounded-xl border border-slate-700">
                     <table class="w-full text-sm text-slate-200">
                         <thead class="bg-slate-800 text-slate-100">
                             <tr>
                                 <th class="px-3 py-3 text-center font-semibold">Pago</th>
+                                <th class="px-3 py-3 text-center font-semibold">ID pago</th>
                                 <th class="px-3 py-3 text-center font-semibold">Monto</th>
                                 <th class="px-3 py-3 text-center font-semibold">Fecha límite</th>
                                 <th class="px-3 py-3 text-center font-semibold">Tolerancia</th>
@@ -107,8 +133,9 @@
                                         default => 'Pendiente',
                                     };
                                 @endphp
-                                <tr>
+                                <tr class="admin-payment-detail-row" data-search="{{ strtolower($payment->reference . ' ' . $payment->payment_number . ' ' . $payment->status) }}">
                                     <td class="px-3 py-3 text-center align-middle font-medium text-white">Pago {{ $payment->payment_number }}</td>
+                                    <td class="px-3 py-3 text-center align-middle text-xs font-semibold text-cyan-200">{{ $payment->reference }}</td>
                                     <td class="px-3 py-3 text-center align-middle font-semibold">${{ number_format($payment->amount, 2) }}</td>
                                     <td class="px-3 py-3 text-center align-middle">{{ $payment->due_date->format('d/m/Y') }}</td>
                                     <td class="px-3 py-3 text-center align-middle">{{ $payment->grace_until->format('d/m/Y') }}</td>
@@ -141,13 +168,42 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-4 py-4 text-center text-slate-300">Esta reserva no tiene pagos adicionales generados.</td>
+                                    <td colspan="8" class="px-4 py-4 text-center text-slate-300">Esta reserva no tiene pagos adicionales generados.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="cancel-booking-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="background: rgba(0,0,0,.75);">
+        <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <div class="mb-4 flex items-start justify-between gap-3">
+                <div>
+                    <h4 class="text-lg font-bold text-white">Cancelar reservación</h4>
+                    <p class="text-sm text-slate-300">¿Seguro que quieres cancelar el tour de <strong>{{ $booking->passenger_name ?: $booking->user->name }}</strong>?</p>
+                </div>
+                <button type="button" onclick="closeCancelBookingModal()" class="rounded-lg bg-slate-700 px-2 py-1 text-xs font-semibold text-white">Cerrar</button>
+            </div>
+
+            <div class="mb-4 rounded-xl border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-100">
+                Esta acción marcará la reservación como <strong>cancelada</strong> y, si ya estaba aprobada, <strong>liberará un cupo</strong> automáticamente.
+            </div>
+
+            <form action="{{ route('admin.bookings.cancel', $booking->id) }}" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="mb-1 block text-sm font-semibold text-slate-200">Motivo de cancelación (opcional)</label>
+                    <textarea name="cancel_reason" rows="3" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Ej. El usuario ya no asistirá al tour."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeCancelBookingModal()" class="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white">No, volver</button>
+                    <button type="submit" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white">Sí, cancelar</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -162,6 +218,20 @@
     </div>
 
     <script>
+        function openCancelBookingModal() {
+            const modal = document.getElementById('cancel-booking-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCancelBookingModal() {
+            const modal = document.getElementById('cancel-booking-modal');
+            if (!modal) return;
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
         function openReceiptModal(imageUrl) {
             const modal = document.getElementById('receipt-modal');
             const img = document.getElementById('receipt-modal-image');
@@ -181,5 +251,22 @@
                 closeReceiptModal();
             }
         });
+
+        document.getElementById('cancel-booking-modal')?.addEventListener('click', function (e) {
+            if (e.target.id === 'cancel-booking-modal') {
+                closeCancelBookingModal();
+            }
+        });
+
+        const adminPaymentDetailFilter = document.getElementById('admin-payment-detail-filter');
+        if (adminPaymentDetailFilter) {
+            adminPaymentDetailFilter.addEventListener('input', function () {
+                const term = this.value.toLowerCase().trim();
+                document.querySelectorAll('.admin-payment-detail-row').forEach((row) => {
+                    const haystack = row.dataset.search || '';
+                    row.style.display = haystack.includes(term) ? '' : 'none';
+                });
+            });
+        }
     </script>
 </x-app-layout>

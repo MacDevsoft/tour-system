@@ -12,6 +12,8 @@ class Booking extends Model
         'tour_id',
         'passenger_name',
         'purchase_id',
+        'digital_receipt_code',
+        'digital_receipt_generated_at',
         'amount_paid',
         'receipt_path',
         'status',
@@ -23,7 +25,15 @@ class Booking extends Model
     protected $casts = [
         'approved_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'digital_receipt_generated_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Booking $booking) {
+            $booking->ensureDigitalReceiptMetadata();
+        });
+    }
 
     public function user()
     {
@@ -42,11 +52,31 @@ class Booking extends Model
 
     public function paymentDeadline(): ?Carbon
     {
-        if (!$this->tour || empty($this->tour->fecha_inicio)) {
+        if (!$this->tour) {
             return null;
         }
 
-        return Carbon::parse($this->tour->fecha_inicio)->subDays(15)->startOfDay();
+        if (!empty($this->tour->payment_deadline)) {
+            return Carbon::parse($this->tour->payment_deadline)->startOfDay();
+        }
+
+        if (!empty($this->tour->fecha_inicio)) {
+            return Carbon::parse($this->tour->fecha_inicio)->subDays(15)->startOfDay();
+        }
+
+        return null;
+    }
+
+    public function ensureDigitalReceiptMetadata(): void
+    {
+        if ($this->digital_receipt_code) {
+            return;
+        }
+
+        $this->forceFill([
+            'digital_receipt_code' => 'CDR-RES-' . $this->id . '-' . strtoupper(substr(md5((string) $this->purchase_id), 0, 6)),
+            'digital_receipt_generated_at' => $this->digital_receipt_generated_at ?? now(),
+        ])->saveQuietly();
     }
 
     public function totalApprovedPayments(): float
@@ -89,8 +119,9 @@ class Booking extends Model
 
         $createdAt = ($this->created_at ? $this->created_at->copy() : now())->startOfDay();
         $deadline = $this->paymentDeadline() ?? $createdAt->copy()->addDays(15);
-        $paymentDates = $this->calculatePaymentDates($createdAt, $deadline);
-        $installments = count($paymentDates);
+        $requestedInstallments = max(0, (int) ($this->tour->payment_installments ?? 0));
+        $paymentDates = $this->calculatePaymentDates($createdAt, $deadline, $requestedInstallments > 0 ? $requestedInstallments : null);
+        $installments = max(1, count($paymentDates));
 
         $baseAmount = floor(($remaining / $installments) * 100) / 100;
         $accumulated = 0;
@@ -162,12 +193,49 @@ class Booking extends Model
         }
     }
 
-    protected function calculatePaymentDates(Carbon $from, Carbon $deadline): array
+    protected function calculatePaymentDates(Carbon $from, Carbon $deadline, ?int $requestedInstallments = null): array
     {
         if ($deadline->lte($from)) {
-            return [$from->copy()];
+            return [$deadline->copy()];
         }
 
+        $dates = $this->collectQuincenaDates($from, $deadline);
+
+        if (empty($dates)) {
+            $dates = [$deadline->copy()];
+        }
+
+        if (!$requestedInstallments || $requestedInstallments <= 0) {
+            return $dates;
+        }
+
+        if ($requestedInstallments === 1) {
+            return [$deadline->copy()];
+        }
+
+        if (count($dates) >= $requestedInstallments) {
+            return $this->spreadDatesAcrossPeriod($dates, $requestedInstallments);
+        }
+
+        $generated = [];
+        $totalDays = max(1, $from->diffInDays($deadline));
+
+        for ($index = 1; $index <= $requestedInstallments; $index++) {
+            $ratio = $index / $requestedInstallments;
+            $candidate = $from->copy()->addDays((int) round($totalDays * $ratio))->startOfDay();
+
+            if ($index === $requestedInstallments || $candidate->gt($deadline)) {
+                $candidate = $deadline->copy();
+            }
+
+            $generated[] = $candidate;
+        }
+
+        return $generated;
+    }
+
+    protected function collectQuincenaDates(Carbon $from, Carbon $deadline): array
+    {
         $dates = [];
         $seen = [];
         $cursor = $from->copy()->startOfMonth();
@@ -188,12 +256,30 @@ class Booking extends Model
             $cursor->addMonthNoOverflow()->startOfMonth();
         }
 
-        if (empty($dates)) {
-            $dates[] = $deadline->copy();
-        }
-
         usort($dates, fn (Carbon $a, Carbon $b) => $a->timestamp <=> $b->timestamp);
 
         return $dates;
+    }
+
+    protected function spreadDatesAcrossPeriod(array $dates, int $count): array
+    {
+        if ($count >= count($dates)) {
+            return $dates;
+        }
+
+        $selected = [];
+        $lastIndex = -1;
+        $maxIndex = count($dates) - 1;
+
+        for ($position = 0; $position < $count; $position++) {
+            $index = (int) round($position * $maxIndex / max(1, $count - 1));
+            $index = max($index, $lastIndex + 1);
+            $index = min($index, $maxIndex - (($count - 1) - $position));
+
+            $selected[] = $dates[$index]->copy();
+            $lastIndex = $index;
+        }
+
+        return $selected;
     }
 }

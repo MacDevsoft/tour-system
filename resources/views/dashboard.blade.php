@@ -88,8 +88,15 @@
 
                                 <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-3">
                                     <p class="text-[11px] text-slate-600 leading-4">
-                                        El resto se dividirá automáticamente en pagos quincenales el <strong>día 1 y 15</strong>.
-                                        Todo debe quedar liquidado <strong>15 días antes del tour</strong> y cada fecha tiene <strong>3 días de tolerancia</strong>.
+                                        @if($tour->payment_installments)
+                                            Este tour está configurado a <strong>{{ $tour->payment_installments }} pago(s)</strong>
+                                            @if($tour->resolvedPaymentDeadline())
+                                                con liquidación máxima al <strong>{{ $tour->resolvedPaymentDeadline()->format('d/m/Y') }}</strong>.
+                                            @endif
+                                        @else
+                                            El resto se dividirá automáticamente en pagos quincenales el <strong>día 1 y 15</strong>.
+                                            Todo debe quedar liquidado <strong>15 días antes del tour</strong> y cada fecha tiene <strong>3 días de tolerancia</strong>.
+                                        @endif
                                     </p>
                                 </div>
 

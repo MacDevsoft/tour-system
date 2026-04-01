@@ -8,7 +8,7 @@
     <div class="p-6 max-w-3xl mx-auto">
         <div class="border border-gray-700 rounded-xl shadow-md p-6" style="background-color:#111827;">
             <p class="mb-5 text-sm text-gray-300">
-                Completa la información del nuevo tour. Puedes definir el precio total, anticipo, capacidad y fechas desde aquí.
+                Completa la información del nuevo tour. Puedes definir el precio total, anticipo, cantidad de pagos y la fecha límite de liquidación desde aquí.
             </p>
 
             <form method="POST" action="/tours" class="space-y-4">
@@ -32,6 +32,19 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-200">Anticipo</label>
                         <input type="number" step="0.01" name="anticipo" value="{{ old('anticipo') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-200">Número de pagos</label>
+                        <input type="number" name="payment_installments" value="{{ old('payment_installments') }}" min="1" max="60" class="mt-1 block w-full border rounded px-3 py-2 text-black" placeholder="Ej. 15">
+                        <p class="mt-1 text-xs text-gray-400">Define cuántos pagos quieres que se generen para liquidar el tour.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-200">Fecha límite de liquidación</label>
+                        <input type="date" name="payment_deadline" value="{{ old('payment_deadline') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+                        <p class="mt-1 text-xs text-gray-400">Todos los pagos deberán quedar cubiertos antes de esta fecha.</p>
                     </div>
                 </div>
 
@@ -81,4 +94,28 @@
             </form>
         </div>
     </div>
+
+    <script>
+        (function syncTourDates() {
+            const startInput = document.querySelector('input[name="fecha_inicio"]');
+            const endInput = document.querySelector('input[name="fecha_fin"]');
+            const paymentDeadlineInput = document.querySelector('input[name="payment_deadline"]');
+
+            if (!startInput || !endInput) return;
+
+            startInput.addEventListener('change', () => {
+                if (!startInput.value) return;
+
+                endInput.min = startInput.value;
+
+                if (!endInput.value || endInput.value < startInput.value) {
+                    endInput.value = startInput.value;
+                }
+
+                if (paymentDeadlineInput && !paymentDeadlineInput.value) {
+                    paymentDeadlineInput.value = startInput.value;
+                }
+            });
+        })();
+    </script>
 </x-app-layout>

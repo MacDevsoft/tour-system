@@ -36,6 +36,19 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
+                        <label class="block text-sm font-medium text-gray-200">Número de pagos</label>
+                        <input type="number" name="payment_installments" min="1" max="60" value="{{ old('payment_installments', $tour->payment_installments) }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+                        <p class="mt-1 text-xs text-gray-400">Ejemplo: 15 pagos antes de la fecha límite que definas.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-200">Fecha límite de liquidación</label>
+                        <input type="date" name="payment_deadline" value="{{ old('payment_deadline', optional($tour->payment_deadline)->format('Y-m-d')) }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+                        <p class="mt-1 text-xs text-gray-400">Este valor manda sobre la fecha del evento para el plan de pagos.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
                         <label class="block text-sm font-medium text-gray-200">Capacidad</label>
                         <input type="number" name="capacidad" value="{{ old('capacidad', $tour->capacidad) }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
                     </div>
@@ -95,4 +108,27 @@
         </div>
     </div>
 
+    <script>
+        (function syncTourDates() {
+            const startInput = document.querySelector('input[name="fecha_inicio"]');
+            const endInput = document.querySelector('input[name="fecha_fin"]');
+            const paymentDeadlineInput = document.querySelector('input[name="payment_deadline"]');
+
+            if (!startInput || !endInput) return;
+
+            startInput.addEventListener('change', () => {
+                if (!startInput.value) return;
+
+                endInput.min = startInput.value;
+
+                if (!endInput.value || endInput.value < startInput.value) {
+                    endInput.value = startInput.value;
+                }
+
+                if (paymentDeadlineInput && !paymentDeadlineInput.value) {
+                    paymentDeadlineInput.value = startInput.value;
+                }
+            });
+        })();
+    </script>
 </x-app-layout>

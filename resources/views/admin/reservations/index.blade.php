@@ -29,22 +29,42 @@
                 </div>
 
                 @if($selectedTour)
-                    <div class="flex items-center gap-2 mb-4">
-                        <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'pending']) }}"
-                           style="{{ $status === 'pending' ? 'background-color:#15803d;color:#ffffff;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:scale(1.03);font-weight:600;' : 'background-color:#1f2937;color:#e5e7eb;border:1px solid #374151;' }}"
-                           class="text-sm px-3 py-2 rounded inline-block transition">
-                            Reservadas
-                        </a>
-                        <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'approved']) }}"
-                           style="{{ $status === 'approved' ? 'background-color:#15803d;color:#ffffff;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:scale(1.03);font-weight:600;' : 'background-color:#1f2937;color:#e5e7eb;border:1px solid #374151;' }}"
-                           class="text-sm px-3 py-2 rounded inline-block transition">
-                            Aprobadas
-                        </a>
-                        <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'rejected']) }}"
-                           style="{{ $status === 'rejected' ? 'background-color:#b91c1c;color:#ffffff;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:scale(1.03);font-weight:600;' : 'background-color:#1f2937;color:#e5e7eb;border:1px solid #374151;' }}"
-                           class="text-sm px-3 py-2 rounded inline-block transition">
-                            Canceladas
-                        </a>
+                    <div class="flex flex-col gap-3 mb-4 md:flex-row md:items-center md:justify-between">
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'pending']) }}"
+                               style="{{ $status === 'pending' ? 'background-color:#15803d;color:#ffffff;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:scale(1.03);font-weight:600;' : 'background-color:#1f2937;color:#e5e7eb;border:1px solid #374151;' }}"
+                               class="relative text-sm px-3 py-2 rounded inline-block transition">
+                                Reservadas
+                                @if(($statusCounts['pending'] ?? 0) > 0)
+                                    <span class="absolute -top-2 -right-2 inline-flex min-w-[1.35rem] justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">{{ $statusCounts['pending'] }}</span>
+                                @endif
+                            </a>
+                            <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'approved']) }}"
+                               style="{{ $status === 'approved' ? 'background-color:#15803d;color:#ffffff;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:scale(1.03);font-weight:600;' : 'background-color:#1f2937;color:#e5e7eb;border:1px solid #374151;' }}"
+                               class="relative text-sm px-3 py-2 rounded inline-block transition">
+                                Aprobadas
+                                @if(($statusCounts['approved'] ?? 0) > 0)
+                                    <span class="absolute -top-2 -right-2 inline-flex min-w-[1.35rem] justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-bold text-white">{{ $statusCounts['approved'] }}</span>
+                                @endif
+                            </a>
+                            <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'rejected']) }}"
+                               style="{{ $status === 'rejected' ? 'background-color:#b91c1c;color:#ffffff;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:scale(1.03);font-weight:600;' : 'background-color:#1f2937;color:#e5e7eb;border:1px solid #374151;' }}"
+                               class="relative text-sm px-3 py-2 rounded inline-block transition">
+                                Canceladas
+                                @if(($statusCounts['rejected'] ?? 0) > 0)
+                                    <span class="absolute -top-2 -right-2 inline-flex min-w-[1.35rem] justify-center rounded-full bg-slate-600 px-1.5 py-0.5 text-[11px] font-bold text-white">{{ $statusCounts['rejected'] }}</span>
+                                @endif
+                            </a>
+                        </div>
+
+                        <form method="GET" action="{{ route('admin.index') }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <input type="hidden" name="tour_id" value="{{ $selectedTour->id }}">
+                            <input type="hidden" name="status" value="{{ $status }}">
+                            <input id="payment-filter-input" type="text" name="payment_ref" value="{{ $paymentSearch ?? '' }}"
+                                   placeholder="Buscar por ID de pago o compra"
+                                   class="w-full sm:w-72 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white">
+                            <button type="submit" class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white">Buscar</button>
+                        </form>
                     </div>
 
                     @if($bookings->isEmpty())
@@ -59,6 +79,7 @@
                                         <th class="px-4 py-3 font-semibold text-center">Persona registrada</th>
                                         <th class="px-4 py-3 font-semibold text-center">Correo</th>
                                         <th class="px-4 py-3 font-semibold text-center">ID compra</th>
+                                        <th class="px-4 py-3 font-semibold text-center">ID pago</th>
                                         <th class="px-4 py-3 font-semibold text-center">Monto</th>
                                         <th class="px-4 py-3 font-semibold text-center">Fecha</th>
                                         <th class="px-4 py-3 font-semibold text-center">Comprobante</th>
@@ -67,7 +88,12 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-100">
                                     @foreach($bookings as $booking)
-                                        <tr>
+                                        @php
+                                            $paymentRefs = $booking->payments->pluck('reference')->implode(' · ');
+                                            $initialPaymentRef = optional($booking->payments->sortBy('payment_number')->first())->reference;
+                                            $searchText = strtolower(trim($booking->purchase_id . ' ' . $paymentRefs . ' ' . $booking->user->name . ' ' . $booking->user->email));
+                                        @endphp
+                                        <tr class="admin-booking-row" data-search="{{ $searchText }}">
                                             <td class="px-4 py-3 text-center align-middle font-medium">{{ $loop->iteration }}</td>
                                             <td class="px-4 py-3 text-center align-middle">
                                                 <a href="{{ route('admin.bookings.show', $booking->id) }}" class="font-semibold text-sky-700 hover:underline">
@@ -80,6 +106,13 @@
                                             <td class="px-4 py-3 text-center align-middle">{{ $booking->passenger_name ?: $booking->user->name }}</td>
                                             <td class="px-4 py-3 text-center align-middle">{{ $booking->user->email }}</td>
                                             <td class="px-4 py-3 font-medium text-center align-middle">{{ $booking->purchase_id }}</td>
+                                            <td class="px-4 py-3 text-center align-middle text-xs">
+                                                @if($initialPaymentRef)
+                                                    <div class="font-semibold text-slate-700">{{ $initialPaymentRef }}</div>
+                                                @else
+                                                    <span class="text-slate-400">Sin pagos</span>
+                                                @endif
+                                            </td>
                                             <td class="px-4 py-3 text-center align-middle">${{ number_format($booking->amount_paid, 2) }}</td>
                                             <td class="px-4 py-3 text-center align-middle">{{ $booking->created_at->format('d/m/Y H:i') }}</td>
                                             <td class="px-4 py-3 text-center align-middle">
@@ -156,5 +189,16 @@
                 closeReceiptModal();
             }
         });
+
+        const paymentFilterInput = document.getElementById('payment-filter-input');
+        if (paymentFilterInput) {
+            paymentFilterInput.addEventListener('input', function () {
+                const term = this.value.toLowerCase().trim();
+                document.querySelectorAll('.admin-booking-row').forEach((row) => {
+                    const haystack = row.dataset.search || '';
+                    row.style.display = haystack.includes(term) ? '' : 'none';
+                });
+            });
+        }
     </script>
 </x-app-layout>

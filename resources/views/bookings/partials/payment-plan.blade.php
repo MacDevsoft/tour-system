@@ -62,11 +62,18 @@
         </div>
     @else
         <div class="mt-4 rounded-xl border border-cyan-900 bg-cyan-950/30 px-4 py-3 text-sm text-cyan-100">
-            <p class="font-semibold">Plan de liquidación quincenal</p>
+            <p class="font-semibold">Plan de liquidación {{ $tour->payment_installments ? 'configurado por administración' : 'quincenal' }}</p>
             <p>
-                El saldo restante se divide en pagos el <strong>día 1 y 15</strong> de cada mes.
-                @if($deadline)
-                    Todo debe quedar liquidado a más tardar el <strong>{{ $deadline->format('d/m/Y') }}</strong>.
+                @if($tour->payment_installments)
+                    El administrador configuró <strong>{{ $tour->payment_installments }} pago(s)</strong>
+                    @if($deadline)
+                        con fecha límite de liquidación el <strong>{{ $deadline->format('d/m/Y') }}</strong>.
+                    @endif
+                @else
+                    El saldo restante se divide en pagos el <strong>día 1 y 15</strong> de cada mes.
+                    @if($deadline)
+                        Todo debe quedar liquidado a más tardar el <strong>{{ $deadline->format('d/m/Y') }}</strong>.
+                    @endif
                 @endif
                 Cada fecha tiene <strong>3 días de tolerancia</strong>; después la reserva se cancela.
             </p>
@@ -79,6 +86,7 @@
                 <thead class="bg-slate-800 text-slate-100">
                     <tr>
                         <th class="px-3 py-3 text-center font-semibold">Pago</th>
+                        <th class="px-3 py-3 text-center font-semibold">ID pago</th>
                         <th class="px-3 py-3 text-center font-semibold">Fecha límite</th>
                         <th class="px-3 py-3 text-center font-semibold">Tolerancia</th>
                         <th class="px-3 py-3 text-center font-semibold">Monto</th>
@@ -94,6 +102,7 @@
                         @endphp
                         <tr>
                             <td class="px-3 py-3 text-center align-middle font-medium text-white">Pago {{ $payment->payment_number }}</td>
+                            <td class="px-3 py-3 text-center align-middle text-xs font-semibold text-cyan-200">{{ $payment->reference }}</td>
                             <td class="px-3 py-3 text-center align-middle">{{ $payment->due_date->format('d/m/Y') }}</td>
                             <td class="px-3 py-3 text-center align-middle">{{ $payment->grace_until->format('d/m/Y') }}</td>
                             <td class="px-3 py-3 text-center align-middle font-semibold">${{ number_format($payment->amount, 2) }}</td>
@@ -139,7 +148,7 @@
                 <div class="mb-4 flex items-start justify-between gap-3">
                     <div>
                         <h5 class="text-lg font-bold text-white">Registrar pago {{ $payment->payment_number }}</h5>
-                        <p class="text-xs text-slate-300">Monto sugerido: ${{ number_format($payment->amount, 2) }}</p>
+                        <p class="text-xs text-slate-300">ID de pago: {{ $payment->reference }} · Monto sugerido: ${{ number_format($payment->amount, 2) }}</p>
                     </div>
                     <button type="button" onclick="closePaymentUploadModal('payment-modal-{{ $prefix }}-{{ $payment->id }}')" class="rounded-lg bg-red-600 px-2 py-1 text-xs font-semibold text-white">
                         Cerrar

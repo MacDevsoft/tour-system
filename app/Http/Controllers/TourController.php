@@ -40,23 +40,41 @@ class TourController extends Controller
             abort(403);
         }
 
-        Tour::create([
-        'nombre' => $request->nombre,
-        'descripcion' => $request->descripcion,
-        'precio_total' => $request->precio_total,
-        'anticipo' => $request->anticipo,
-        'cupos_totales' => $request->capacidad,
-        'cupos_disponibles' => $request->capacidad,
-        'ubicacion' => $request->ubicacion,
-        'punto_encuentro' => $request->punto_encuentro,
-        'hora_salida' => $request->hora_salida,
-        'transporte' => $request->transporte,
-        'capacidad' => $request->capacidad,
-        'fecha_inicio' => $request->fecha_inicio,
-        'fecha_fin' => $request->fecha_fin,
-    ]);
+        $data = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'precio_total' => 'nullable|numeric|min:0',
+            'anticipo' => 'nullable|numeric|min:0',
+            'payment_installments' => 'nullable|integer|min:1|max:60',
+            'capacidad' => 'nullable|integer|min:1',
+            'ubicacion' => 'nullable|string|max:255',
+            'punto_encuentro' => 'nullable|string|max:255',
+            'hora_salida' => 'nullable|string',
+            'transporte' => 'nullable|string|max:255',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'payment_deadline' => 'nullable|date',
+        ]);
 
-    return redirect('/tours');
+        Tour::create([
+            'nombre' => $data['nombre'],
+            'descripcion' => $data['descripcion'] ?? null,
+            'precio_total' => $data['precio_total'] ?? 0,
+            'anticipo' => $data['anticipo'] ?? 0,
+            'payment_installments' => $data['payment_installments'] ?? null,
+            'cupos_totales' => $data['capacidad'] ?? 0,
+            'cupos_disponibles' => $data['capacidad'] ?? 0,
+            'ubicacion' => $data['ubicacion'] ?? null,
+            'punto_encuentro' => $data['punto_encuentro'] ?? null,
+            'hora_salida' => $data['hora_salida'] ?? null,
+            'transporte' => $data['transporte'] ?? null,
+            'capacidad' => $data['capacidad'] ?? 0,
+            'fecha_inicio' => $data['fecha_inicio'] ?? null,
+            'fecha_fin' => $data['fecha_fin'] ?? null,
+            'payment_deadline' => $data['payment_deadline'] ?? null,
+        ]);
+
+        return redirect('/tours')->with('status', 'Tour creado correctamente');
     }
 
     /**
@@ -91,15 +109,17 @@ class TourController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'precio_total' => 'nullable|numeric',
-            'anticipo' => 'nullable|numeric',
-            'capacidad' => 'nullable|integer',
-            'ubicacion' => 'nullable|string',
-            'punto_encuentro' => 'nullable|string',
+            'precio_total' => 'nullable|numeric|min:0',
+            'anticipo' => 'nullable|numeric|min:0',
+            'payment_installments' => 'nullable|integer|min:1|max:60',
+            'capacidad' => 'nullable|integer|min:1',
+            'ubicacion' => 'nullable|string|max:255',
+            'punto_encuentro' => 'nullable|string|max:255',
             'hora_salida' => 'nullable|string',
-            'transporte' => 'nullable|string',
+            'transporte' => 'nullable|string|max:255',
             'fecha_inicio' => 'nullable|date',
-            'fecha_fin' => 'nullable|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'payment_deadline' => 'nullable|date',
         ]);
 
         $tour->update([
@@ -107,6 +127,7 @@ class TourController extends Controller
             'descripcion' => $data['descripcion'] ?? $tour->descripcion,
             'precio_total' => $data['precio_total'] ?? $tour->precio_total,
             'anticipo' => $data['anticipo'] ?? $tour->anticipo,
+            'payment_installments' => $data['payment_installments'] ?? $tour->payment_installments,
             'capacidad' => $data['capacidad'] ?? $tour->capacidad,
             'cupos_totales' => $data['capacidad'] ?? $tour->cupos_totales,
             'ubicacion' => $data['ubicacion'] ?? $tour->ubicacion,
@@ -115,6 +136,7 @@ class TourController extends Controller
             'transporte' => $data['transporte'] ?? $tour->transporte,
             'fecha_inicio' => $data['fecha_inicio'] ?? $tour->fecha_inicio,
             'fecha_fin' => $data['fecha_fin'] ?? $tour->fecha_fin,
+            'payment_deadline' => $data['payment_deadline'] ?? $tour->payment_deadline,
         ]);
 
         // Ajustar cupos_disponibles si la capacidad disminuyó

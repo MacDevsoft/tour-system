@@ -52,12 +52,9 @@
 
                     @if($selectedTour)
                         @php
-                            $pendingBookings = $selectedGroup->where('status', 'pending')->values();
-                            $approvedBookings = $selectedGroup->where('status', 'approved')->values();
-                            $cancelledBookings = $selectedGroup->where('status', 'rejected')->values();
-                            $paymentCloseDate = filled($selectedTour->fecha_inicio)
-                                ? \Illuminate\Support\Carbon::parse($selectedTour->fecha_inicio)->subDays(15)->format('d/m/Y')
-                                : 'N/D';
+                            $selectedBookingId = (int) request('booking_id', optional($selectedGroup->first())->id);
+                            $selectedBooking = $selectedGroup->firstWhere('id', $selectedBookingId) ?? $selectedGroup->first();
+                            $paymentCloseDate = $selectedTour->resolvedPaymentDeadline()?->format('d/m/Y') ?? 'N/D';
                         @endphp
 
                         <div class="rounded-2xl border border-gray-700 p-6" style="background-color:#0f172a;">
@@ -80,74 +77,67 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-between mb-6">
-                                <h4 class="text-2xl font-bold text-white">Detalle de mis reservas</h4>
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-2xl font-bold text-white">Mis personas registradas</h4>
+                                    <span class="text-xs text-slate-400">{{ $selectedGroup->count() }} reservación(es)</span>
+                                </div>
+
+                                <div class="flex flex-wrap gap-3">
+                                    @foreach($selectedGroup as $bookingOption)
+                                        @php
+                                            $isActiveBooking = optional($selectedBooking)->id === $bookingOption->id;
+                                            $statusClasses = match($bookingOption->status) {
+                                                'approved' => 'bg-green-100 text-green-700',
+                                                'rejected' => 'bg-red-100 text-red-700',
+                                                default => 'bg-yellow-100 text-yellow-700',
+                                            };
+                                            $statusLabel = match($bookingOption->status) {
+                                                'approved' => 'Aprobada',
+                                                'rejected' => 'Cancelada',
+                                                default => 'Pendiente',
+                                            };
+                                        @endphp
+                                        <a href="{{ route('bookings.my-tours', ['tour_id' => $selectedTour->id, 'booking_id' => $bookingOption->id]) }}"
+                                           class="rounded-xl border px-4 py-3 transition"
+                                           style="border-color: {{ $isActiveBooking ? '#22c55e' : '#475569' }}; background-color: {{ $isActiveBooking ? '#0b1220' : '#111827' }}; min-width: 13rem;">
+                                            <p class="text-sm font-bold text-white">{{ $bookingOption->passenger_name ?: $bookingOption->user->name }}</p>
+                                            <p class="text-[11px] text-slate-300">{{ $bookingOption->purchase_id }}</p>
+                                            <span class="mt-2 inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $statusClasses }}">{{ $statusLabel }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
 
-                            @if($pendingBookings->count() === 0 && $approvedBookings->count() === 0 && $cancelledBookings->count() === 0)
-                                <p class="text-slate-300">No hay reservas registradas para este tour.</p>
-                            @endif
+                            @if($selectedBooking)
+                                @php
+                                    $headerClasses = match($selectedBooking->status) {
+                                        'approved' => 'border-green-800',
+                                        'rejected' => 'border-red-800',
+                                        default => 'border-yellow-800',
+                                    };
+                                    $badgeClasses = match($selectedBooking->status) {
+                                        'approved' => 'bg-green-100 text-green-700',
+                                        'rejected' => 'bg-red-100 text-red-700',
+                                        default => 'bg-yellow-100 text-yellow-700',
+                                    };
+                                    $badgeLabel = match($selectedBooking->status) {
+                                        'approved' => 'Aprobada',
+                                        'rejected' => 'Cancelada',
+                                        default => 'Pendiente',
+                                    };
+                                @endphp
 
-                            @if($pendingBookings->count() > 0)
-                                <div class="mb-8">
-                                    <h5 class="text-lg font-bold text-yellow-400 mb-3">Pendientes de aprobación</h5>
-                                    <div class="space-y-5">
-                                        @foreach($pendingBookings as $booking)
-                                            <div class="rounded-2xl border border-yellow-800 bg-slate-900/60 p-4">
-                                                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                                                    <div>
-                                                        <p class="text-base font-bold text-white">Reserva de {{ $booking->passenger_name ?: $booking->user->name }}</p>
-                                                        <p class="text-xs text-slate-300">{{ $booking->purchase_id }} · registrada el {{ $booking->created_at->format('d/m/Y H:i') }}</p>
-                                                    </div>
-                                                    <span class="inline-block rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">Pendiente</span>
-                                                </div>
-
-                                                @include('bookings.partials.payment-plan', ['booking' => $booking, 'prefix' => 'pending-'.$booking->id])
-                                            </div>
-                                        @endforeach
+                                <div class="rounded-2xl border {{ $headerClasses }} bg-slate-900/60 p-4">
+                                    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                                        <div>
+                                            <p class="text-base font-bold text-white">Esquema de pago de {{ $selectedBooking->passenger_name ?: $selectedBooking->user->name }}</p>
+                                            <p class="text-xs text-slate-300">{{ $selectedBooking->purchase_id }} · registrada el {{ $selectedBooking->created_at->format('d/m/Y H:i') }}</p>
+                                        </div>
+                                        <span class="inline-block rounded-full px-2.5 py-1 text-xs font-semibold {{ $badgeClasses }}">{{ $badgeLabel }}</span>
                                     </div>
-                                </div>
-                            @endif
 
-                            @if($approvedBookings->count() > 0)
-                                <div class="mb-8">
-                                    <h5 class="text-lg font-bold text-green-400 mb-3">Aprobadas</h5>
-                                    <div class="space-y-5">
-                                        @foreach($approvedBookings as $booking)
-                                            <div class="rounded-2xl border border-green-800 bg-slate-900/60 p-4">
-                                                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                                                    <div>
-                                                        <p class="text-base font-bold text-white">Reserva de {{ $booking->passenger_name ?: $booking->user->name }}</p>
-                                                        <p class="text-xs text-slate-300">{{ $booking->purchase_id }} · aprobada el {{ optional($booking->approved_at)->format('d/m/Y H:i') ?: 'Pendiente' }}</p>
-                                                    </div>
-                                                    <span class="inline-block rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Aprobada</span>
-                                                </div>
-
-                                                @include('bookings.partials.payment-plan', ['booking' => $booking, 'prefix' => 'approved-'.$booking->id])
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if($cancelledBookings->count() > 0)
-                                <div>
-                                    <h5 class="text-lg font-bold text-red-400 mb-3">Canceladas</h5>
-                                    <div class="space-y-5">
-                                        @foreach($cancelledBookings as $booking)
-                                            <div class="rounded-2xl border border-red-800 bg-slate-900/60 p-4">
-                                                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                                                    <div>
-                                                        <p class="text-base font-bold text-white">Reserva de {{ $booking->passenger_name ?: $booking->user->name }}</p>
-                                                        <p class="text-xs text-slate-300">{{ $booking->purchase_id }} · {{ $booking->cancellation_reason ?: 'Cancelada por falta de pago' }}</p>
-                                                    </div>
-                                                    <span class="inline-block rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Cancelada</span>
-                                                </div>
-
-                                                @include('bookings.partials.payment-plan', ['booking' => $booking, 'prefix' => 'cancelled-'.$booking->id])
-                                            </div>
-                                        @endforeach
-                                    </div>
+                                    @include('bookings.partials.payment-plan', ['booking' => $selectedBooking, 'prefix' => 'selected-'.$selectedBooking->id])
                                 </div>
                             @endif
                         </div>

@@ -10,9 +10,7 @@
         $alreadyBooked = auth()->check() && auth()->user()->role === 'user'
             ? \App\Models\Booking::where('user_id', auth()->id())->where('tour_id', $tour->id)->exists()
             : false;
-        $paymentCloseDate = filled($tour->fecha_inicio)
-            ? \Illuminate\Support\Carbon::parse($tour->fecha_inicio)->subDays(15)->format('d/m/Y')
-            : null;
+        $paymentCloseDate = $tour->resolvedPaymentDeadline()?->format('d/m/Y');
     @endphp
 
     <div class="p-6 max-w-4xl mx-auto">
@@ -48,9 +46,17 @@
                 <div class="mt-5 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-200">
                     <p class="font-semibold text-white mb-1">Esquema de pagos</p>
                     <p>
-                        Apartas con <strong>${{ number_format($tour->anticipo ?? 0, 2) }}</strong> y el resto se divide automáticamente en pagos quincenales los días <strong>1 y 15</strong>.
-                        @if($paymentCloseDate)
-                            Todo debe quedar liquidado antes del <strong>{{ $paymentCloseDate }}</strong>.
+                        Apartas con <strong>${{ number_format($tour->anticipo ?? 0, 2) }}</strong>.
+                        @if($tour->payment_installments)
+                            El administrador configuró <strong>{{ $tour->payment_installments }} pago(s)</strong>
+                            @if($paymentCloseDate)
+                                para liquidar antes del <strong>{{ $paymentCloseDate }}</strong>.
+                            @endif
+                        @else
+                            El resto se divide automáticamente en pagos quincenales los días <strong>1 y 15</strong>.
+                            @if($paymentCloseDate)
+                                Todo debe quedar liquidado antes del <strong>{{ $paymentCloseDate }}</strong>.
+                            @endif
                         @endif
                     </p>
                 </div>

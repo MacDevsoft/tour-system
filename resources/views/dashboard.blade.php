@@ -558,6 +558,10 @@
 
             event.preventDefault();
 
+            if (typeof hideGlobalLoader === 'function') {
+                hideGlobalLoader();
+            }
+
             const proceed = await showBookingConfirmModal();
 
             if (!proceed) {
@@ -565,11 +569,22 @@
                 if (overlay) {
                     closeModal(overlay.id);
                 }
+
+                if (typeof hideGlobalLoader === 'function') {
+                    hideGlobalLoader();
+                }
+
                 return;
             }
 
             confirmInput.value = '1';
-            form.requestSubmit();
+
+            if (typeof hideGlobalLoader === 'function') {
+                hideGlobalLoader();
+            }
+
+            // Usar submit directo evita quedarse en estado de espera por eventos re-encadenados.
+            form.submit();
         });
     });
 </script>

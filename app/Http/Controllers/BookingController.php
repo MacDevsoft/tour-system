@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\BookingPayment;
 use App\Models\Tour;
+use App\Notifications\PaymentApprovedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,10 +29,12 @@ class BookingController extends Controller
 
         $alreadyBooked = Booking::where('user_id', auth()->id())
             ->where('tour_id', $tour->id)
+            ->where('status', '!=', 'rejected')
             ->exists();
 
         $bookingsCountForTour = Booking::where('user_id', auth()->id())
             ->where('tour_id', $tour->id)
+            ->where('status', '!=', 'rejected')
             ->count();
 
         if ($bookingsCountForTour >= 4) {
@@ -72,6 +75,7 @@ class BookingController extends Controller
 
         $bookings = Booking::with(['tour', 'payments', 'user'])
             ->where('user_id', auth()->id())
+            ->where('status', '!=', 'rejected')
             ->oldest()
             ->get();
 
@@ -96,6 +100,7 @@ class BookingController extends Controller
         $bookings = Booking::with(['tour', 'payments', 'user'])
             ->where('user_id', auth()->id())
             ->where('tour_id', $tour->id)
+            ->where('status', '!=', 'rejected')
             ->oldest()
             ->get();
 
@@ -113,9 +118,7 @@ class BookingController extends Controller
 
         $pendingBookings = $bookings->where('status', 'pending')->values();
         $approvedBookings = $bookings->where('status', 'approved')->values();
-        $cancelledBookings = $bookings->where('status', 'rejected')->values();
-
-        return view('bookings.show', compact('tour', 'pendingBookings', 'approvedBookings', 'cancelledBookings'));
+        return view('bookings.show', compact('tour', 'pendingBookings', 'approvedBookings'));
     }
 
     public function receipt(Booking $booking)
@@ -155,7 +158,7 @@ class BookingController extends Controller
         $status = request('status', 'pending');
         $paymentSearch = trim((string) request('payment_ref', ''));
 
-        if (!in_array($status, ['pending', 'approved', 'rejected'], true)) {
+        if (!in_array($status, ['pending', 'approved'], true)) {
             $status = 'pending';
         }
 
@@ -166,7 +169,6 @@ class BookingController extends Controller
         $statusCounts = [
             'pending' => 0,
             'approved' => 0,
-            'rejected' => 0,
         ];
 
         if ($tourId) {
@@ -202,7 +204,6 @@ class BookingController extends Controller
                 $statusCounts = [
                     'pending' => Booking::where('tour_id', $selectedTour->id)->where('status', 'pending')->count(),
                     'approved' => Booking::where('tour_id', $selectedTour->id)->where('status', 'approved')->count(),
-                    'rejected' => Booking::where('tour_id', $selectedTour->id)->where('status', 'rejected')->count(),
                 ];
             }
         }
@@ -214,6 +215,10 @@ class BookingController extends Controller
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {
             abort(403);
+        }
+
+        if ($booking->status === 'rejected') {
+            abort(404);
         }
 
         $booking->load(['tour', 'user', 'payments']);
@@ -349,6 +354,9 @@ class BookingController extends Controller
             'status' => 'approved',
             'approved_at' => now(),
         ]);
+
+        $payment->loadMissing('booking.tour');
+        $booking->user?->notify(new PaymentApprovedNotification($payment));
 
         return back()->with('status', 'Pago aprobado correctamente.');
     }

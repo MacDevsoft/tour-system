@@ -12,7 +12,7 @@
                     @php
                         $totalTours = \App\Models\Tour::count();
                         $activeTours = \App\Models\Tour::where('is_enabled', true)->count();
-                        $totalBookings = \App\Models\Booking::count();
+                        $totalBookings = \App\Models\Booking::where('status', '!=', 'rejected')->count();
                         $pendingBookings = \App\Models\Booking::where('status', 'pending')->count();
                         $approvedBookings = \App\Models\Booking::where('status', 'approved')->count();
                         $pendingPayments = \App\Models\BookingPayment::whereIn('status', ['pending', 'late', 'submitted'])->count();
@@ -20,7 +20,11 @@
                         $confirmedRevenue = (float) \App\Models\Booking::where('status', 'approved')->sum('amount_paid')
                             + (float) \App\Models\BookingPayment::where('status', 'approved')->sum('amount');
                         $upcomingTours = \App\Models\Tour::orderBy('fecha_inicio')->take(4)->get();
-                        $recentBookings = \App\Models\Booking::with(['tour', 'user'])->latest()->take(5)->get();
+                        $recentBookings = \App\Models\Booking::with(['tour', 'user'])
+                            ->where('status', '!=', 'rejected')
+                            ->latest()
+                            ->take(5)
+                            ->get();
                         $bank = \App\Models\BankAccount::active();
                         $formatDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->format('d/m/Y') : 'Por confirmar';
                     @endphp
@@ -69,17 +73,17 @@
                             </div>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
-                            <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Reservaciones</p>
-                            <div class="mt-2 flex items-end justify-between">
-                                <p class="text-3xl font-black text-white">{{ $totalBookings }}</p>
-                                <span class="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-300">{{ $pendingBookings }} pendientes</span>
-                            </div>
+                            <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Reservaciones pendientes por revisar</p>
+                            <p class="mt-2 text-3xl font-black text-white">{{ $pendingBookings }}</p>
+                            <p class="mt-1 text-sm text-slate-400">Total registradas: {{ $totalBookings }}</p>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
                             <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Pagos por revisar</p>
                             <div class="mt-2 flex items-end justify-between">
                                 <p class="text-3xl font-black text-white">{{ $pendingPayments }}</p>
-                                <span class="rounded-full bg-cyan-500/15 px-2.5 py-1 text-xs font-semibold text-cyan-300">{{ $submittedPayments }} enviados</span>
+                                @if($submittedPayments > 0)
+                                    <span class="rounded-full bg-cyan-500/15 px-2.5 py-1 text-xs font-semibold text-cyan-300">{{ $submittedPayments }} enviados</span>
+                                @endif
                             </div>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
@@ -170,12 +174,15 @@
                 @else
                     @php
                         $tours = \App\Models\Tour::where('is_enabled', true)->orderBy('fecha_inicio')->get();
-                        $myBookings = \App\Models\Booking::with(['tour', 'payments'])->where('user_id', auth()->id())->latest()->get();
+                        $myBookings = \App\Models\Booking::with(['tour', 'payments'])
+                            ->where('user_id', auth()->id())
+                            ->where('status', '!=', 'rejected')
+                            ->latest()
+                            ->get();
                         $myBookedTourIds = $myBookings->pluck('tour_id')->flip();
-                        $activeBookings = $myBookings->where('status', '!=', 'rejected')->count();
+                        $activeBookings = $myBookings->count();
                         $approvedBookings = $myBookings->where('status', 'approved')->count();
                         $pendingBookings = $myBookings->where('status', 'pending')->count();
-                        $cancelledBookings = $myBookings->where('status', 'rejected')->count();
                         $totalPendingBalance = $myBookings->sum(fn ($booking) => $booking->remainingAmount());
                         $nextPayment = \App\Models\BookingPayment::with('booking.tour')
                             ->whereHas('booking', fn ($query) => $query->where('user_id', auth()->id()))
@@ -183,7 +190,7 @@
                             ->orderBy('due_date')
                             ->first();
                         $nextTrip = $myBookings
-                            ->filter(fn ($booking) => $booking->tour && $booking->status !== 'rejected')
+                            ->filter(fn ($booking) => $booking->tour)
                             ->sortBy(fn ($booking) => $booking->tour->fecha_inicio ?? '9999-12-31')
                             ->first();
                         $bank = \App\Models\BankAccount::active();
@@ -231,9 +238,6 @@
                             <p class="mt-2 text-3xl font-black text-white">{{ $activeBookings }}</p>
                             <p class="mt-1 text-sm text-slate-400">
                                 {{ $approvedBookings }} aprobadas · {{ $pendingBookings }} pendientes
-                                @if($cancelledBookings > 0)
-                                    · {{ $cancelledBookings }} canceladas
-                                @endif
                             </p>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
@@ -317,8 +321,8 @@
                                         <div class="relative">
                                             <div class="mb-4 flex items-start justify-between gap-3">
                                                 <div>
-                                                    <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $isFull && !$alreadyBooked ? 'bg-red-500/15 text-red-300' : 'bg-emerald-500/15 text-emerald-300' }}">
-                                                        {{ $isFull && !$alreadyBooked ? 'Sin cupo' : ($alreadyBooked ? 'Ya reservado' : 'Disponible') }}
+                                                    <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $isFull ? 'bg-red-500/15 text-red-300' : 'bg-emerald-500/15 text-emerald-300' }}">
+                                                        {{ $isFull ? 'Tour completo' : ($alreadyBooked ? 'Ya reservado' : 'Disponible') }}
                                                     </span>
                                                     <h4 class="mt-3 text-xl font-bold text-white">{{ $tour->nombre }}</h4>
                                                     <p class="mt-1 text-sm text-slate-300">{{ \Illuminate\Support\Str::limit($tour->descripcion, 90) }}</p>
@@ -342,9 +346,9 @@
                                                     Ver detalles
                                                 </a>
 
-                                                @if($isFull && !$alreadyBooked)
+                                                @if($isFull)
                                                     <button type="button" disabled class="cursor-not-allowed rounded-xl bg-slate-700 px-3 py-2 text-sm font-semibold text-slate-300">
-                                                        Sin disponibilidad
+                                                        Tour completo
                                                     </button>
                                                 @else
                                                     <button onclick="openModal('modal-{{ $tour->id }}')" type="button" class="rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-3 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-900/20 transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-cyan-300/60">

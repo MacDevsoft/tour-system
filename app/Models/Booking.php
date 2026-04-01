@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class Booking extends Model
 {
+    protected static ?bool $supportsDigitalReceiptColumns = null;
+
     protected $fillable = [
         'user_id',
         'tour_id',
@@ -69,6 +72,10 @@ class Booking extends Model
 
     public function ensureDigitalReceiptMetadata(): void
     {
+        if (!$this->supportsDigitalReceiptMetadata()) {
+            return;
+        }
+
         if ($this->digital_receipt_code) {
             return;
         }
@@ -77,6 +84,20 @@ class Booking extends Model
             'digital_receipt_code' => 'CDR-RES-' . $this->id . '-' . strtoupper(substr(md5((string) $this->purchase_id), 0, 6)),
             'digital_receipt_generated_at' => $this->digital_receipt_generated_at ?? now(),
         ])->saveQuietly();
+    }
+
+    protected function supportsDigitalReceiptMetadata(): bool
+    {
+        if (static::$supportsDigitalReceiptColumns !== null) {
+            return static::$supportsDigitalReceiptColumns;
+        }
+
+        static::$supportsDigitalReceiptColumns = Schema::hasColumns('bookings', [
+            'digital_receipt_code',
+            'digital_receipt_generated_at',
+        ]);
+
+        return static::$supportsDigitalReceiptColumns;
     }
 
     public function totalApprovedPayments(): float

@@ -21,7 +21,7 @@
                 @endif
 
                 @php
-                    $allBookings = $pendingBookings->concat($approvedBookings)->concat($cancelledBookings)->values();
+                    $allBookings = $pendingBookings->concat($approvedBookings)->values();
                     $selectedBookingId = (int) request('booking_id', optional($allBookings->first())->id);
                     $selectedBooking = $allBookings->firstWhere('id', $selectedBookingId) ?? $allBookings->first();
                 @endphp
@@ -41,12 +41,10 @@
                                     $isActiveBooking = optional($selectedBooking)->id === $bookingOption->id;
                                     $statusClasses = match($bookingOption->status) {
                                         'approved' => 'bg-green-100 text-green-700',
-                                        'rejected' => 'bg-red-100 text-red-700',
                                         default => 'bg-yellow-100 text-yellow-700',
                                     };
                                     $statusLabel = match($bookingOption->status) {
                                         'approved' => 'Aprobada',
-                                        'rejected' => 'Cancelada',
                                         default => 'Pendiente',
                                     };
                                 @endphp
@@ -68,17 +66,14 @@
                         @php
                             $headerClasses = match($selectedBooking->status) {
                                 'approved' => 'border-green-800',
-                                'rejected' => 'border-red-800',
                                 default => 'border-yellow-800',
                             };
                             $badgeClasses = match($selectedBooking->status) {
                                 'approved' => 'bg-green-100 text-green-700',
-                                'rejected' => 'bg-red-100 text-red-700',
                                 default => 'bg-yellow-100 text-yellow-700',
                             };
                             $badgeLabel = match($selectedBooking->status) {
                                 'approved' => 'Aprobada',
-                                'rejected' => 'Cancelada',
                                 default => 'Pendiente',
                             };
                         @endphp

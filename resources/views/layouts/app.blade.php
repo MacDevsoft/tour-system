@@ -40,74 +40,121 @@
             </div>
         </div>
 
-        <div id="global-loading-overlay" class="pointer-events-none fixed inset-0 z-[999] hidden items-center justify-center bg-slate-950/70 backdrop-blur-sm">
-            <div class="flex flex-col items-center gap-4 rounded-3xl border border-white/10 bg-slate-900/90 px-8 py-6 shadow-2xl shadow-black/40">
-                <div class="h-12 w-12 animate-spin rounded-full border-4 border-cyan-400/30 border-t-cyan-400"></div>
-                <div class="text-center">
-                    <p class="text-sm font-semibold text-white">Cargando...</p>
-                    <p class="text-xs text-slate-300">Espera un momento</p>
-                </div>
-            </div>
-        </div>
+        @php
+            $paymentApprovedAlerts = collect();
+
+            if (auth()->check() && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $paymentApprovedAlerts = auth()->user()
+                    ->unreadNotifications()
+                    ->where('type', \App\Notifications\PaymentApprovedNotification::class)
+                    ->latest()
+                    ->take(4)
+                    ->get();
+
+                if ($paymentApprovedAlerts->isNotEmpty()) {
+                    $paymentApprovedAlerts->markAsRead();
+                }
+            }
+        @endphp
+
+        <div id="payment-toast-stack" class="pointer-events-none fixed right-4 top-4 z-[1200] flex w-[min(92vw,380px)] flex-col gap-3"></div>
 
         <script>
-            const globalLoadingOverlay = document.getElementById('global-loading-overlay');
-
             function showGlobalLoader() {
-                if (!globalLoadingOverlay) {
-                    return;
-                }
-
-                globalLoadingOverlay.classList.remove('hidden');
-                globalLoadingOverlay.classList.add('flex');
+                return;
             }
 
             function hideGlobalLoader() {
-                if (!globalLoadingOverlay) {
-                    return;
-                }
-
-                globalLoadingOverlay.classList.remove('flex');
-                globalLoadingOverlay.classList.add('hidden');
+                return;
             }
 
-            document.addEventListener('click', (event) => {
-                const link = event.target.closest('a[href]');
+            const paymentApprovedAlerts = @json($paymentApprovedAlerts->map(fn ($item) => $item->data)->values());
 
-                if (!link || link.hasAttribute('data-no-loader')) {
+            function renderPaymentToast(alert, index) {
+                const stack = document.getElementById('payment-toast-stack');
+                if (!stack) {
                     return;
                 }
 
-                const href = link.getAttribute('href') || '';
+                const toast = document.createElement('a');
+                toast.href = alert.url || '#';
+                toast.className = 'pointer-events-auto block overflow-hidden rounded-2xl border border-emerald-400/30 bg-slate-900/95 p-4 text-white shadow-2xl shadow-emerald-950/30 backdrop-blur-xl transition duration-300 hover:border-emerald-300/60 hover:bg-slate-900';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px) scale(0.98)';
 
-                if (
-                    href === '' ||
-                    href.startsWith('#') ||
-                    href.startsWith('javascript:') ||
-                    link.target === '_blank' ||
-                    event.ctrlKey ||
-                    event.metaKey ||
-                    event.shiftKey ||
-                    event.altKey
-                ) {
+                const approvedAt = alert.approved_at ? `<p class="mt-1 text-[11px] text-slate-300">Aprobado: ${alert.approved_at}</p>` : '';
+                const amount = typeof alert.amount === 'number' ? alert.amount.toFixed(2) : alert.amount;
+
+                toast.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 h-8 w-8 shrink-0 rounded-full bg-emerald-400/20 text-center text-lg leading-8">✓</div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-black tracking-wide text-emerald-300">${alert.title || 'Pago aprobado'}</p>
+                            <p class="mt-1 text-sm text-slate-100">${alert.message || 'Tu pago fue aceptado.'}</p>
+                            <div class="mt-2 rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-xs text-slate-200">
+                                <p><span class="text-slate-400">Tour:</span> ${alert.tour_name || 'N/A'}</p>
+                                <p><span class="text-slate-400">Referencia:</span> ${alert.payment_reference || 'N/A'}</p>
+                                <p><span class="text-slate-400">Monto:</span> $${amount || '0.00'}</p>
+                                ${approvedAt}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                stack.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateY(0) scale(1)';
+                }, 80 + (index * 120));
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-8px) scale(0.98)';
+                    setTimeout(() => toast.remove(), 280);
+                }, 10000 + (index * 500));
+            }
+
+            function pushBrowserPaymentNotification(alert) {
+                if (!('Notification' in window)) {
                     return;
                 }
 
-                showGlobalLoader();
-            });
+                const showNotification = () => {
+                    if (Notification.permission !== 'granted') {
+                        return;
+                    }
 
-            document.addEventListener('submit', (event) => {
-                const form = event.target;
+                    const body = `${alert.tour_name || 'Tour'} · Ref ${alert.payment_reference || 'N/A'} · $${(typeof alert.amount === 'number' ? alert.amount.toFixed(2) : alert.amount || '0.00')}`;
+                    const notification = new Notification(alert.title || 'Tu pago fue aceptado', {
+                        body,
+                        icon: '/favicon.ico',
+                    });
 
-                if (!(form instanceof HTMLFormElement) || form.hasAttribute('data-no-loader')) {
+                    notification.onclick = () => {
+                        window.focus();
+                        if (alert.url) {
+                            window.location.href = alert.url;
+                        }
+                    };
+                };
+
+                if (Notification.permission === 'default') {
+                    Notification.requestPermission().then(showNotification);
                     return;
                 }
 
-                showGlobalLoader();
-            });
+                showNotification();
+            }
 
-            window.addEventListener('pageshow', hideGlobalLoader);
-            window.addEventListener('load', hideGlobalLoader);
+            if (Array.isArray(paymentApprovedAlerts) && paymentApprovedAlerts.length > 0) {
+                paymentApprovedAlerts.forEach((alert, index) => {
+                    renderPaymentToast(alert, index);
+                    if (index === 0) {
+                        pushBrowserPaymentNotification(alert);
+                    }
+                });
+            }
         </script>
     </body>
 </html>

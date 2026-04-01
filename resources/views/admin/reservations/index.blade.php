@@ -14,7 +14,6 @@
 
                 @php
                     $totalTours = $tours->count();
-                    $selectedCountTotal = $selectedTour ? array_sum($statusCounts) : 0;
                 @endphp
 
                 <section class="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-r from-slate-950 via-emerald-950/60 to-slate-950 px-6 py-7 shadow-2xl shadow-emerald-950/20">
@@ -36,7 +35,7 @@
                     </div>
                 </section>
 
-                <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
                         <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Tours visibles</p>
                         <p class="mt-2 text-3xl font-black text-white">{{ $totalTours }}</p>
@@ -51,11 +50,6 @@
                         <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Aprobadas</p>
                         <p class="mt-2 text-3xl font-black text-white">{{ $statusCounts['approved'] ?? 0 }}</p>
                         <p class="mt-1 text-sm text-slate-400">Reservas confirmadas</p>
-                    </div>
-                    <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
-                        <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Canceladas</p>
-                        <p class="mt-2 text-3xl font-black text-white">{{ $statusCounts['rejected'] ?? 0 }}</p>
-                        <p class="mt-1 text-sm text-slate-400">{{ $selectedCountTotal }} registros del tour</p>
                     </div>
                 </section>
 
@@ -103,13 +97,6 @@
                                     Aprobadas
                                     @if(($statusCounts['approved'] ?? 0) > 0)
                                         <span class="absolute -right-2 -top-2 inline-flex min-w-[1.35rem] justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-bold text-white">{{ $statusCounts['approved'] }}</span>
-                                    @endif
-                                </a>
-                                <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'rejected']) }}#reservations-panel"
-                                   class="relative rounded-xl px-4 py-2 text-sm font-semibold transition {{ $status === 'rejected' ? 'bg-red-600 text-white shadow-lg shadow-red-950/20' : 'border border-white/10 bg-slate-950/70 text-slate-200 hover:border-red-400/40' }}">
-                                    Canceladas
-                                    @if(($statusCounts['rejected'] ?? 0) > 0)
-                                        <span class="absolute -right-2 -top-2 inline-flex min-w-[1.35rem] justify-center rounded-full bg-slate-600 px-1.5 py-0.5 text-[11px] font-bold text-white">{{ $statusCounts['rejected'] }}</span>
                                     @endif
                                 </a>
                             </div>

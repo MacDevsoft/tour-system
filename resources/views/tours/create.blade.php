@@ -1,97 +1,106 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">
-            Crear Tour
-        </h2>
+        <div class="flex flex-col gap-1">
+            <h2 class="font-semibold text-xl text-white leading-tight">Crear Tour</h2>
+            <p class="text-sm text-slate-300">Captura toda la información con un formulario cómodo en celular, tablet o escritorio.</p>
+        </div>
     </x-slot>
 
-    <div class="p-6 max-w-3xl mx-auto">
-        <div class="border border-gray-700 rounded-xl shadow-md p-6" style="background-color:#111827;">
-            <p class="mb-5 text-sm text-gray-300">
-                Completa la información del nuevo tour. Puedes definir el precio total, anticipo, cantidad de pagos y la fecha límite de liquidación desde aquí.
-            </p>
-
-            <form method="POST" action="/tours" class="space-y-4">
-                @csrf
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-200">Nombre</label>
-                    <input type="text" name="nombre" value="{{ old('nombre') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-200">Descripción</label>
-                    <textarea name="descripcion" class="mt-1 block w-full border rounded px-3 py-2 text-black" rows="4">{{ old('descripcion') }}</textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-5xl">
+            <div class="rounded-3xl border border-slate-800 bg-slate-900/90 p-4 shadow-2xl shadow-slate-950/30 sm:p-6 lg:p-8">
+                <div class="mb-6 grid gap-4 lg:grid-cols-[1.3fr_.7fr] lg:items-start">
                     <div>
-                        <label class="block text-sm font-medium text-gray-200">Precio total</label>
-                        <input type="number" step="0.01" name="precio_total" value="{{ old('precio_total') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+                        <p class="text-sm text-cyan-300">Nuevo registro</p>
+                        <h3 class="mt-1 text-2xl font-bold text-white sm:text-3xl">Configura un tour completo</h3>
+                        <p class="mt-2 text-sm leading-6 text-slate-300">
+                            Define precio total, anticipo, plan de pagos y fechas clave desde una sola pantalla adaptable.
+                        </p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Anticipo</label>
-                        <input type="number" step="0.01" name="anticipo" value="{{ old('anticipo') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+
+                    <div class="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-4 text-sm text-cyan-50">
+                        <p class="font-semibold">Tip rápido</p>
+                        <p class="mt-1 text-cyan-100/90">Si eliges la fecha de inicio primero, el sistema te ayuda a sugerir la fecha final y la fecha límite de pago.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Número de pagos</label>
-                        <input type="number" name="payment_installments" value="{{ old('payment_installments') }}" min="1" max="60" class="mt-1 block w-full border rounded px-3 py-2 text-black" placeholder="Ej. 15">
-                        <p class="mt-1 text-xs text-gray-400">Define cuántos pagos quieres que se generen para liquidar el tour.</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Fecha límite de liquidación</label>
-                        <input type="date" name="payment_deadline" value="{{ old('payment_deadline') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
-                        <p class="mt-1 text-xs text-gray-400">Todos los pagos deberán quedar cubiertos antes de esta fecha.</p>
-                    </div>
-                </div>
+                <form method="POST" action="/tours" class="space-y-6">
+                    @csrf
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Capacidad</label>
-                        <input type="number" name="capacidad" value="{{ old('capacidad') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Transporte</label>
-                        <input type="text" name="transporte" value="{{ old('transporte') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
-                    </div>
-                </div>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-200">Nombre</label>
+                            <input type="text" name="nombre" value="{{ old('nombre') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" required>
+                        </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Ubicación</label>
-                        <input type="text" name="ubicacion" value="{{ old('ubicacion') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-200">Descripción</label>
+                            <textarea name="descripcion" rows="4" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">{{ old('descripcion') }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Precio total</label>
+                            <input type="number" step="0.01" name="precio_total" value="{{ old('precio_total') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Anticipo</label>
+                            <input type="number" step="0.01" name="anticipo" value="{{ old('anticipo') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Número de pagos</label>
+                            <input type="number" name="payment_installments" value="{{ old('payment_installments') }}" min="1" max="60" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" placeholder="Ej. 15">
+                            <p class="mt-1 text-xs text-slate-400">Cuántos pagos deseas generar para liquidar el tour.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Fecha límite de liquidación</label>
+                            <input type="date" name="payment_deadline" value="{{ old('payment_deadline') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <p class="mt-1 text-xs text-slate-400">Todos los pagos deberán quedar cubiertos antes de esta fecha.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Capacidad</label>
+                            <input type="number" name="capacidad" value="{{ old('capacidad') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Transporte</label>
+                            <input type="text" name="transporte" value="{{ old('transporte') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Ubicación</label>
+                            <input type="text" name="ubicacion" value="{{ old('ubicacion') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Punto de encuentro</label>
+                            <input type="text" name="punto_encuentro" value="{{ old('punto_encuentro') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Fecha inicio</label>
+                            <input type="date" name="fecha_inicio" value="{{ old('fecha_inicio') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Fecha fin</label>
+                            <input type="date" name="fecha_fin" value="{{ old('fecha_fin') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-200">Hora de salida</label>
+                            <input type="time" name="hora_salida" value="{{ old('hora_salida') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Punto de encuentro</label>
-                        <input type="text" name="punto_encuentro" value="{{ old('punto_encuentro') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
+                    <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto">
+                            Guardar tour
+                        </button>
+                        <button type="reset" class="inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 sm:w-auto">
+                            Limpiar formulario
+                        </button>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Fecha inicio</label>
-                        <input type="date" name="fecha_inicio" value="{{ old('fecha_inicio') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200">Fecha fin</label>
-                        <input type="date" name="fecha_fin" value="{{ old('fecha_fin') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-200">Hora de salida</label>
-                    <input type="time" name="hora_salida" value="{{ old('hora_salida') }}" class="mt-1 block w-full border rounded px-3 py-2 text-black">
-                </div>
-
-                <div class="flex items-center gap-3 mt-4">
-                    <button type="submit" class="bg-green-500 text-black px-4 py-2 rounded">Guardar</button>
-                    <button type="reset" class="bg-gray-200 text-black px-4 py-2 rounded">Limpiar</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 

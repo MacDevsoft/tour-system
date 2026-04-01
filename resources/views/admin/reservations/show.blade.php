@@ -3,9 +3,9 @@
         <h2 class="font-semibold text-xl text-white leading-tight">Detalle de pagos del usuario</h2>
     </x-slot>
 
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="overflow-hidden shadow-sm sm:rounded-lg p-6" style="background-color:#111827;">
+    <div class="py-10">
+        <div class="max-w-7xl mx-auto space-y-6 sm:px-6 lg:px-8">
+            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-4 shadow-xl shadow-black/20 sm:p-6">
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h3 class="text-2xl font-bold text-white">{{ $booking->user->name }}</h3>
@@ -98,7 +98,7 @@
                 <div class="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <h4 class="text-lg font-bold text-white">Pagos programados</h4>
                     <input id="admin-payment-detail-filter" type="text" placeholder="Filtrar por ID de pago"
-                           class="w-full md:w-72 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white">
+                           class="w-full rounded-xl border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white md:w-72">
                 </div>
 
                 <div class="mt-3 overflow-x-auto rounded-xl border border-slate-700">
@@ -207,13 +207,13 @@
         </div>
     </div>
 
-    <div id="receipt-modal" class="fixed inset-0 z-50 items-center justify-center" style="display:none;background: rgba(0,0,0,.75);">
-        <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-xl relative" style="width:min(92vw, 420px); padding:14px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <button type="button" onclick="closeReceiptModal()" style="position:absolute; top:10px; right:10px; z-index:10; background-color:#dc2626;color:#ffffff;" class="px-2 py-1 rounded text-xs font-semibold">
+    <div id="receipt-modal" class="fixed inset-0 z-50 items-center justify-center" style="display:none;background: rgba(2,6,23,.82);">
+        <div class="relative flex w-full max-w-md flex-col items-center justify-center rounded-3xl border border-white/10 bg-slate-950 p-4 shadow-2xl shadow-black/40">
+            <button type="button" onclick="closeReceiptModal()" class="absolute right-3 top-3 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white">
                 Cerrar
             </button>
-            <h4 class="text-base font-bold mb-3 text-white">Comprobante</h4>
-            <img id="receipt-modal-image" src="" alt="Comprobante" class="mx-auto rounded border border-gray-700 bg-gray-800" style="width:220px;height:320px;object-fit:contain;display:block;">
+            <h4 class="mb-3 text-base font-bold text-white">Comprobante</h4>
+            <img id="receipt-modal-image" src="" alt="Comprobante" class="mx-auto rounded-xl border border-slate-700 bg-slate-900" style="width:220px;height:320px;object-fit:contain;display:block;">
         </div>
     </div>
 

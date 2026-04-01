@@ -1,10 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">Comprobante de reserva</h2>
+        <div class="flex flex-col gap-1">
+            <h2 class="font-semibold text-xl text-white leading-tight">Comprobante de reserva</h2>
+            <p class="text-sm text-slate-300">Tu comprobante digital ahora mantiene mejor proporción en celular y tablet.</p>
+        </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl">
             <div id="booking-digital-receipt" class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
                 <div class="relative h-36 overflow-hidden border-b border-gray-900" style="background: linear-gradient(125deg, #162046 0%, #233b7a 45%, #271247 100%);">
                     <div class="absolute -left-10 top-8 h-24 w-24 rounded-full bg-cyan-400/20 blur-2xl"></div>
@@ -63,7 +66,7 @@
 
                         <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                             <p class="text-sm font-semibold text-slate-700">Descargar o compartir comprobante</p>
-                            <p class="mt-1 text-xs text-slate-500">Configurado para compartir al número <strong>55 3156 6578</strong>.</p>
+                            <p class="mt-1 text-xs leading-5 text-slate-500">Configurado para compartir al número <strong>55 3156 6578</strong>.</p>
                             <div class="mt-3 grid gap-2 sm:grid-cols-2">
                                 <button type="button" onclick="downloadDigitalReceiptImage('booking-digital-receipt', 'comprobante-digital-reserva-{{ $booking->purchase_id }}.png')"
                                         class="rounded-xl bg-slate-800 px-4 py-2 text-center text-sm font-bold text-white">

@@ -3,12 +3,15 @@
         <h2 class="font-semibold text-xl text-white leading-tight">{{ $tour->nombre }}</h2>
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-10">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="overflow-hidden shadow-sm sm:rounded-lg p-6" style="background-color:#111827;">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-white">Detalle de mis reservas</h3>
-                    <a href="{{ route('bookings.my-tours', ['tour_id' => $tour->id]) }}" class="bg-gray-200 text-black px-4 py-2 rounded">Volver</a>
+            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-4 shadow-xl shadow-black/20 sm:p-6">
+                <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">Detalle de mis reservas</h3>
+                        <p class="text-sm text-slate-400">Revisa el estado y pagos de este tour.</p>
+                    </div>
+                    <a href="{{ route('bookings.my-tours', ['tour_id' => $tour->id]) }}" class="inline-flex w-full items-center justify-center rounded-xl bg-slate-200 px-4 py-2 text-sm font-semibold text-black md:w-auto">Volver</a>
                 </div>
 
                 @if(session('status'))
@@ -32,7 +35,7 @@
                             <span class="text-xs text-slate-400">{{ $allBookings->count() }} reservación(es)</span>
                         </div>
 
-                        <div class="flex flex-wrap gap-3">
+                        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                             @foreach($allBookings as $bookingOption)
                                 @php
                                     $isActiveBooking = optional($selectedBooking)->id === $bookingOption->id;
@@ -48,11 +51,14 @@
                                     };
                                 @endphp
                                 <a href="{{ route('bookings.show-tour', ['tour' => $tour->id, 'booking_id' => $bookingOption->id]) }}"
-                                   class="rounded-xl border px-4 py-3 transition"
-                                   style="border-color: {{ $isActiveBooking ? '#22c55e' : '#475569' }}; background-color: {{ $isActiveBooking ? '#0b1220' : '#111827' }}; min-width: 13rem;">
-                                    <p class="text-sm font-bold text-white">{{ $bookingOption->passenger_name ?: $bookingOption->user->name }}</p>
-                                    <p class="text-[11px] text-slate-300">{{ $bookingOption->purchase_id }}</p>
-                                    <span class="mt-2 inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $statusClasses }}">{{ $statusLabel }}</span>
+                                   class="rounded-2xl border p-4 transition duration-200 {{ $isActiveBooking ? 'border-emerald-400/50 bg-emerald-500/10 shadow-lg shadow-emerald-950/20' : 'border-white/10 bg-slate-950/70 hover:border-cyan-400/40' }}">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="text-sm font-bold text-white">{{ $bookingOption->passenger_name ?: $bookingOption->user->name }}</p>
+                                            <p class="mt-1 text-[11px] text-slate-300">{{ $bookingOption->purchase_id }}</p>
+                                        </div>
+                                        <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $statusClasses }}">{{ $statusLabel }}</span>
+                                    </div>
                                 </a>
                             @endforeach
                         </div>
@@ -94,13 +100,13 @@
         </div>
     </div>
 
-    <div id="receipt-modal" class="fixed inset-0 z-50 items-center justify-center" style="display:none;background: rgba(0,0,0,.75);">
-        <div class="bg-white rounded-xl shadow-xl relative" style="width:min(92vw, 420px); padding:14px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <button type="button" onclick="closeReceiptModal()" style="position:absolute; top:10px; right:10px; z-index:10; background-color:#dc2626;color:#ffffff;" class="px-2 py-1 rounded text-xs font-semibold">
+    <div id="receipt-modal" class="fixed inset-0 z-50 items-center justify-center" style="display:none;background: rgba(2,6,23,.82);">
+        <div class="relative flex w-full max-w-md flex-col items-center justify-center rounded-3xl border border-white/10 bg-slate-950 p-4 shadow-2xl shadow-black/40">
+            <button type="button" onclick="closeReceiptModal()" class="absolute right-3 top-3 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white">
                 Cerrar
             </button>
-            <h4 class="text-base font-bold mb-3">Comprobante</h4>
-            <img id="receipt-modal-image" src="" alt="Comprobante" class="mx-auto rounded border bg-gray-50" style="width:220px;height:320px;object-fit:contain;display:block;">
+            <h4 class="mb-3 text-base font-bold text-white">Comprobante</h4>
+            <img id="receipt-modal-image" src="" alt="Comprobante" class="mx-auto rounded-xl border border-slate-700 bg-slate-900" style="width:220px;height:320px;object-fit:contain;display:block;">
         </div>
     </div>
 

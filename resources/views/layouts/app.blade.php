@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
@@ -98,6 +101,9 @@
         <div id="payment-toast-stack" class="pointer-events-none fixed right-4 top-4 z-[1200] flex w-[min(92vw,380px)] flex-col gap-3"></div>
 
         <script>
+            const AUTO_REFRESH_MS = 45000;
+            let skipAutoRefresh = false;
+
             function showGlobalLoader() {
                 return;
             }
@@ -105,6 +111,43 @@
             function hideGlobalLoader() {
                 return;
             }
+
+            // Avoid stale pages when navigating back/forward from browser cache.
+            window.addEventListener('pageshow', (event) => {
+                const navEntries = performance.getEntriesByType('navigation');
+                const isBackForward = Array.isArray(navEntries) && navEntries[0]?.type === 'back_forward';
+
+                if (event.persisted || isBackForward) {
+                    window.location.reload();
+                }
+            });
+
+            document.addEventListener('submit', () => {
+                skipAutoRefresh = true;
+            });
+
+            // Keep data fresh while avoiding reloads during active editing.
+            setInterval(() => {
+                if (skipAutoRefresh || document.visibilityState !== 'visible') {
+                    return;
+                }
+
+                const activeElement = document.activeElement;
+                const isEditing = activeElement instanceof HTMLElement
+                    && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName)
+                    && !activeElement.hasAttribute('readonly')
+                    && !activeElement.hasAttribute('disabled');
+
+                if (isEditing) {
+                    return;
+                }
+
+                if (document.querySelector('.modal-overlay.open')) {
+                    return;
+                }
+
+                window.location.reload();
+            }, AUTO_REFRESH_MS);
 
             const paymentApprovedAlerts = @json($paymentApprovedAlertsData);
 

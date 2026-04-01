@@ -25,12 +25,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/mis-tours/tour/{tour}', [BookingController::class, 'showTour'])->name('bookings.show-tour');
     Route::get('/mis-tours/{booking}/comprobante', [BookingController::class, 'receipt'])->name('bookings.receipt');
     Route::get('/mis-tours/{booking}/imagen', [BookingController::class, 'receiptImage'])->name('bookings.receipt-image');
+    Route::post('/mis-pagos/{payment}/enviar', [BookingController::class, 'submitPayment'])->name('bookings.payments.submit');
+    Route::get('/mis-pagos/{payment}/comprobante', [BookingController::class, 'paymentReceipt'])->name('bookings.payments.receipt');
+    Route::get('/mis-pagos/{payment}/imagen', [BookingController::class, 'paymentReceiptImage'])->name('bookings.payments.image');
 });
 
 // Administración (admin)
 Route::middleware('auth')->group(function () {
     Route::get('/administracion', [BookingController::class, 'adminIndex'])->name('admin.index');
+    Route::get('/administracion/reservas/{booking}', [BookingController::class, 'showAdminBooking'])->name('admin.bookings.show');
     Route::post('/administracion/reservas/{booking}/aprobar', [BookingController::class, 'approve'])->name('admin.bookings.approve');
+    Route::post('/administracion/pagos/{payment}/aprobar', [BookingController::class, 'approvePayment'])->name('admin.payments.approve');
 });
 
 // Cuentas bancarias (admin)

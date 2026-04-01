@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\BookingPayment;
 use App\Models\Tour;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -50,6 +51,8 @@ class BookingController extends Controller
             'status' => 'pending',
         ]);
 
+        $this->touchBookingPlan($booking);
+
         return redirect()->route('bookings.receipt', $booking->id);
     }
 
@@ -59,11 +62,16 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $bookings = Booking::with('tour')
+        $bookings = Booking::with(['tour', 'payments', 'user'])
             ->where('user_id', auth()->id())
             ->oldest()
             ->get();
 
+        $bookings->each(function (Booking $booking) {
+            $this->touchBookingPlan($booking);
+        });
+
+        $bookings->load(['tour', 'payments']);
         $tourGroups = $bookings->groupBy('tour_id');
 
         return view('bookings.my-tours', compact('tourGroups'));
@@ -75,7 +83,7 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $bookings = Booking::with('tour')
+        $bookings = Booking::with(['tour', 'payments', 'user'])
             ->where('user_id', auth()->id())
             ->where('tour_id', $tour->id)
             ->oldest()
@@ -85,10 +93,17 @@ class BookingController extends Controller
             abort(404);
         }
 
+        $bookings->each(function (Booking $booking) {
+            $this->touchBookingPlan($booking);
+        });
+
+        $bookings->load('payments');
+
         $pendingBookings = $bookings->where('status', 'pending')->values();
         $approvedBookings = $bookings->where('status', 'approved')->values();
+        $cancelledBookings = $bookings->where('status', 'rejected')->values();
 
-        return view('bookings.show', compact('tour', 'pendingBookings', 'approvedBookings'));
+        return view('bookings.show', compact('tour', 'pendingBookings', 'approvedBookings', 'cancelledBookings'));
     }
 
     public function receipt(Booking $booking)
@@ -97,9 +112,22 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $booking->load('tour');
+        $booking->load(['tour', 'payments']);
+        $this->touchBookingPlan($booking);
+        $booking->load('payments');
 
         return view('bookings.receipt', compact('booking'));
+    }
+
+    public function paymentReceipt(BookingPayment $payment)
+    {
+        if (!auth()->check() || auth()->id() !== $payment->booking->user_id) {
+            abort(403);
+        }
+
+        $payment->load(['booking.tour', 'booking.user']);
+
+        return view('bookings.payment-receipt', compact('payment'));
     }
 
     public function adminIndex()
@@ -111,6 +139,10 @@ class BookingController extends Controller
         $tourId = request('tour_id');
         $status = request('status', 'pending');
 
+        if (!in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $status = 'pending';
+        }
+
         $tours = Tour::where('is_enabled', true)->orderBy('nombre')->get();
 
         $bookings = collect();
@@ -120,15 +152,34 @@ class BookingController extends Controller
             $selectedTour = Tour::find($tourId);
 
             if ($selectedTour) {
-                $bookings = Booking::with(['tour', 'user'])
+                $bookings = Booking::with(['tour', 'user', 'payments'])
                     ->where('tour_id', $selectedTour->id)
                     ->where('status', $status)
                     ->oldest()
                     ->get();
+
+                $bookings->each(function (Booking $booking) {
+                    $this->touchBookingPlan($booking);
+                });
+
+                $bookings->load('payments');
             }
         }
 
         return view('admin.reservations.index', compact('tours', 'bookings', 'selectedTour', 'status'));
+    }
+
+    public function showAdminBooking(Booking $booking)
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $booking->load(['tour', 'user', 'payments']);
+        $this->touchBookingPlan($booking);
+        $booking->load('payments');
+
+        return view('admin.reservations.show', compact('booking'));
     }
 
     public function approve(Booking $booking)
@@ -139,6 +190,10 @@ class BookingController extends Controller
 
         if ($booking->status === 'approved') {
             return back()->with('status', 'Esta reserva ya fue aprobada anteriormente.');
+        }
+
+        if ($booking->status === 'rejected') {
+            return back()->with('status', 'No se puede aprobar una reserva cancelada o rechazada.');
         }
 
         $tour = $booking->tour;
@@ -155,7 +210,66 @@ class BookingController extends Controller
             'cupos_disponibles' => max(0, ((int) $tour->cupos_disponibles) - 1),
         ]);
 
+        $this->touchBookingPlan($booking);
+
         return back()->with('status', 'Reserva aprobada correctamente y cupo descontado.');
+    }
+
+    public function submitPayment(Request $request, BookingPayment $payment)
+    {
+        if (!auth()->check() || auth()->id() !== $payment->booking->user_id) {
+            abort(403);
+        }
+
+        $booking = $payment->booking()->with('tour', 'payments')->firstOrFail();
+        $this->touchBookingPlan($booking);
+
+        if ($booking->status === 'rejected') {
+            return back()->with('status', 'Esta reserva fue cancelada y ya no puede recibir pagos.');
+        }
+
+        if (!in_array($payment->status, ['pending', 'late'], true)) {
+            return back()->with('status', 'Este pago ya fue enviado o aprobado anteriormente.');
+        }
+
+        $request->validate([
+            'receipt' => 'required|image|max:5120',
+        ]);
+
+        $receiptPath = $request->file('receipt')->store('payment-receipts', 'public');
+
+        $payment->update([
+            'receipt_path' => $receiptPath,
+            'submitted_at' => now(),
+            'status' => 'submitted',
+        ]);
+
+        return redirect()->route('bookings.payments.receipt', $payment->id);
+    }
+
+    public function approvePayment(BookingPayment $payment)
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $booking = $payment->booking()->with('tour', 'user', 'payments')->firstOrFail();
+        $this->touchBookingPlan($booking);
+
+        if ($booking->status === 'rejected') {
+            return back()->with('status', 'La reserva ya está cancelada por falta de pago.');
+        }
+
+        if ($payment->status !== 'submitted') {
+            return back()->with('status', 'Este pago no está pendiente de revisión.');
+        }
+
+        $payment->update([
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('status', 'Pago aprobado correctamente.');
     }
 
     public function receiptImage(Booking $booking)
@@ -176,5 +290,31 @@ class BookingController extends Controller
         }
 
         return response()->file(storage_path('app/public/' . $booking->receipt_path));
+    }
+
+    public function paymentReceiptImage(BookingPayment $payment)
+    {
+        if (!auth()->check()) {
+            abort(403);
+        }
+
+        $isOwner = auth()->id() === $payment->booking->user_id;
+        $isAdmin = auth()->user()->role === 'admin';
+
+        if (!$isOwner && !$isAdmin) {
+            abort(403);
+        }
+
+        if (!$payment->receipt_path || !Storage::disk('public')->exists($payment->receipt_path)) {
+            abort(404);
+        }
+
+        return response()->file(storage_path('app/public/' . $payment->receipt_path));
+    }
+
+    protected function touchBookingPlan(Booking $booking): void
+    {
+        $booking->ensurePaymentSchedule();
+        $booking->refreshPaymentPlanStatus();
     }
 }

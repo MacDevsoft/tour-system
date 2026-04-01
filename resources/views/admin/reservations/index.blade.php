@@ -40,6 +40,11 @@
                            class="text-sm px-3 py-2 rounded inline-block transition">
                             Aprobadas
                         </a>
+                        <a href="{{ route('admin.index', ['tour_id' => $selectedTour->id, 'status' => 'rejected']) }}"
+                           style="{{ $status === 'rejected' ? 'background-color:#b91c1c;color:#ffffff;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:scale(1.03);font-weight:600;' : 'background-color:#1f2937;color:#e5e7eb;border:1px solid #374151;' }}"
+                           class="text-sm px-3 py-2 rounded inline-block transition">
+                            Canceladas
+                        </a>
                     </div>
 
                     @if($bookings->isEmpty())
@@ -64,7 +69,14 @@
                                     @foreach($bookings as $booking)
                                         <tr>
                                             <td class="px-4 py-3 text-center align-middle font-medium">{{ $loop->iteration }}</td>
-                                            <td class="px-4 py-3 text-center align-middle">{{ $booking->user->name }}</td>
+                                            <td class="px-4 py-3 text-center align-middle">
+                                                <a href="{{ route('admin.bookings.show', $booking->id) }}" class="font-semibold text-sky-700 hover:underline">
+                                                    {{ $booking->user->name }}
+                                                </a>
+                                                @if(($booking->payments->where('status', 'submitted')->count() ?? 0) > 0)
+                                                    <p class="text-[11px] text-blue-600">{{ $booking->payments->where('status', 'submitted')->count() }} pago(s) por revisar</p>
+                                                @endif
+                                            </td>
                                             <td class="px-4 py-3 text-center align-middle">{{ $booking->passenger_name ?: $booking->user->name }}</td>
                                             <td class="px-4 py-3 text-center align-middle">{{ $booking->user->email }}</td>
                                             <td class="px-4 py-3 font-medium text-center align-middle">{{ $booking->purchase_id }}</td>
@@ -79,18 +91,27 @@
                                                 </button>
                                             </td>
                                             <td class="px-4 py-3 text-center align-middle">
-                                                @if($booking->status === 'pending')
-                                                    <form action="{{ route('admin.bookings.approve', $booking->id) }}" method="POST" class="inline-block">
-                                                        @csrf
-                                                        <button type="submit"
-                                                                style="background-color:#16a34a;color:#ffffff;"
-                                                                class="px-3 py-1.5 rounded text-xs font-semibold">
-                                                            Aprobar
-                                                        </button>
-                                                    </form>
-                                                @else
-                                                    <span class="inline-block px-2 py-1 text-xs rounded bg-green-100 text-green-700">Aprobada</span>
-                                                @endif
+                                                <div class="flex flex-col items-center gap-2">
+                                                    <a href="{{ route('admin.bookings.show', $booking->id) }}"
+                                                       class="px-3 py-1.5 rounded text-xs font-semibold bg-sky-600 text-white">
+                                                        Ver detalle
+                                                    </a>
+
+                                                    @if($booking->status === 'pending')
+                                                        <form action="{{ route('admin.bookings.approve', $booking->id) }}" method="POST" class="inline-block">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    style="background-color:#16a34a;color:#ffffff;"
+                                                                    class="px-3 py-1.5 rounded text-xs font-semibold">
+                                                                Aprobar
+                                                            </button>
+                                                        </form>
+                                                    @elseif($booking->status === 'approved')
+                                                        <span class="inline-block px-2 py-1 text-xs rounded bg-green-100 text-green-700">Aprobada</span>
+                                                    @else
+                                                        <span class="inline-block px-2 py-1 text-xs rounded bg-red-100 text-red-700">Cancelada</span>
+                                                    @endif
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach

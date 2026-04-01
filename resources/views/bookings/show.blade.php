@@ -8,81 +8,60 @@
             <div class="overflow-hidden shadow-sm sm:rounded-lg p-6" style="background-color:#111827;">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-2xl font-bold text-white">Detalle de mis reservas</h3>
-                    <a href="{{ route('bookings.my-tours') }}" class="bg-gray-200 text-black px-4 py-2 rounded">Volver</a>
+                    <a href="{{ route('bookings.my-tours', ['tour_id' => $tour->id]) }}" class="bg-gray-200 text-black px-4 py-2 rounded">Volver</a>
                 </div>
+
+                @if(session('status'))
+                    <div class="mb-4 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if($pendingBookings->count() === 0 && $approvedBookings->count() === 0 && $cancelledBookings->count() === 0)
+                    <p class="text-slate-300">No hay reservas para este tour.</p>
+                @endif
 
                 @if($pendingBookings->count() > 0)
                     <div class="mb-8">
-                        <h4 class="text-lg font-bold text-yellow-700 mb-3">Pendientes</h4>
-                        <div class="w-full overflow-x-auto border border-gray-200 rounded-xl">
-                            <table class="w-full text-sm text-gray-700">
-                                <thead class="bg-gray-100 text-gray-800">
-                                    <tr>
-                                        <th class="px-4 py-3 font-semibold text-center">#</th>
-                                        <th class="px-4 py-3 font-semibold text-center">ID compra</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Monto</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Fecha</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Comprobante</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-100">
-                                    @foreach($pendingBookings as $booking)
-                                        <tr>
-                                            <td class="px-4 py-3 font-medium text-center align-middle">{{ $loop->iteration }}</td>
-                                            <td class="px-4 py-3 font-medium text-center align-middle">{{ $booking->purchase_id }}</td>
-                                            <td class="px-4 py-3 text-center align-middle">${{ number_format($booking->amount_paid, 2) }}</td>
-                                            <td class="px-4 py-3 text-center align-middle">{{ $booking->created_at->format('d/m/Y H:i') }}</td>
-                                            <td class="px-4 py-3 text-center align-middle">
-                                                <button type="button" onclick="openReceiptModal('{{ route('bookings.receipt-image', $booking->id) }}')" style="background-color:#16a34a;" class="text-white px-3 py-1.5 rounded text-xs">
-                                                    Ver comprobante
-                                                </button>
-                                            </td>
-                                            <td class="px-4 py-3 text-center align-middle">
-                                                <span class="inline-block px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700">Pendiente</span>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <h4 class="text-lg font-bold text-yellow-400 mb-3">Pendientes</h4>
+                        <div class="space-y-5">
+                            @foreach($pendingBookings as $booking)
+                                <div class="rounded-2xl border border-yellow-800 bg-slate-900/60 p-4">
+                                    <p class="text-base font-bold text-white">Reserva de {{ $booking->passenger_name ?: $booking->user->name }}</p>
+                                    <p class="text-xs text-slate-300">{{ $booking->purchase_id }}</p>
+                                    @include('bookings.partials.payment-plan', ['booking' => $booking, 'prefix' => 'show-pending-'.$booking->id])
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 @endif
 
                 @if($approvedBookings->count() > 0)
+                    <div class="mb-8">
+                        <h4 class="text-lg font-bold text-green-400 mb-3">Aprobadas</h4>
+                        <div class="space-y-5">
+                            @foreach($approvedBookings as $booking)
+                                <div class="rounded-2xl border border-green-800 bg-slate-900/60 p-4">
+                                    <p class="text-base font-bold text-white">Reserva de {{ $booking->passenger_name ?: $booking->user->name }}</p>
+                                    <p class="text-xs text-slate-300">{{ $booking->purchase_id }}</p>
+                                    @include('bookings.partials.payment-plan', ['booking' => $booking, 'prefix' => 'show-approved-'.$booking->id])
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                @if($cancelledBookings->count() > 0)
                     <div>
-                        <h4 class="text-lg font-bold text-green-700 mb-3">Aprobadas</h4>
-                        <div class="w-full overflow-x-auto border border-gray-200 rounded-xl">
-                            <table class="w-full text-sm text-gray-700">
-                                <thead class="bg-gray-100 text-gray-800">
-                                    <tr>
-                                        <th class="px-4 py-3 font-semibold text-center">#</th>
-                                        <th class="px-4 py-3 font-semibold text-center">ID compra</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Monto</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Fecha</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Comprobante</th>
-                                        <th class="px-4 py-3 font-semibold text-center">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-100">
-                                    @foreach($approvedBookings as $booking)
-                                        <tr>
-                                            <td class="px-4 py-3 font-medium text-center align-middle">{{ $loop->iteration }}</td>
-                                            <td class="px-4 py-3 font-medium text-center align-middle">{{ $booking->purchase_id }}</td>
-                                            <td class="px-4 py-3 text-center align-middle">${{ number_format($booking->amount_paid, 2) }}</td>
-                                            <td class="px-4 py-3 text-center align-middle">{{ $booking->created_at->format('d/m/Y H:i') }}</td>
-                                            <td class="px-4 py-3 text-center align-middle">
-                                                <button type="button" onclick="openReceiptModal('{{ route('bookings.receipt-image', $booking->id) }}')" style="background-color:#16a34a;" class="text-white px-3 py-1.5 rounded text-xs">
-                                                    Ver comprobante
-                                                </button>
-                                            </td>
-                                            <td class="px-4 py-3 text-center align-middle">
-                                                <span class="inline-block px-2 py-1 text-xs rounded bg-green-100 text-green-700">Aprobada</span>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <h4 class="text-lg font-bold text-red-400 mb-3">Canceladas</h4>
+                        <div class="space-y-5">
+                            @foreach($cancelledBookings as $booking)
+                                <div class="rounded-2xl border border-red-800 bg-slate-900/60 p-4">
+                                    <p class="text-base font-bold text-white">Reserva de {{ $booking->passenger_name ?: $booking->user->name }}</p>
+                                    <p class="text-xs text-slate-300">{{ $booking->purchase_id }}</p>
+                                    @include('bookings.partials.payment-plan', ['booking' => $booking, 'prefix' => 'show-cancelled-'.$booking->id])
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 @endif

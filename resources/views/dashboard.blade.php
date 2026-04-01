@@ -86,6 +86,13 @@
                                     <p class="text-lg font-bold text-blue-700">${{ number_format($tour->anticipo ?? 0, 2) }}</p>
                                 </div>
 
+                                <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-3">
+                                    <p class="text-[11px] text-slate-600 leading-4">
+                                        El resto se dividirá automáticamente en pagos quincenales el <strong>día 1 y 15</strong>.
+                                        Todo debe quedar liquidado <strong>15 días antes del tour</strong> y cada fecha tiene <strong>3 días de tolerancia</strong>.
+                                    </p>
+                                </div>
+
                                 @if($bank)
                                 <div class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 mb-3 space-y-0.5">
                                     <p class="text-xs font-bold text-gray-600 mb-1">Datos bancarios</p>

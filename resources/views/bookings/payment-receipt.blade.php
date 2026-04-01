@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">Comprobante de reserva</h2>
+        <h2 class="font-semibold text-xl text-white leading-tight">Comprobante de pago</h2>
     </x-slot>
 
     <div class="py-6">
@@ -11,8 +11,8 @@
                     <div class="absolute right-0 top-0 h-20 w-20 rounded-full bg-fuchsia-400/20 blur-2xl"></div>
                     <div class="relative z-10 px-6 py-5 text-white">
                         <p class="text-xs font-semibold uppercase tracking-widest text-cyan-200">Comprobante digital</p>
-                        <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white">Reserva realizada con exito</h3>
-                        <p class="mt-1 text-sm text-slate-100">Guarda este comprobante o tomale captura de pantalla.</p>
+                        <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white">Pago enviado correctamente</h3>
+                        <p class="mt-1 text-sm text-slate-100">Tu comprobante quedó pendiente de revisión por el administrador.</p>
                     </div>
                 </div>
 
@@ -24,23 +24,18 @@
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-[1.3fr_.7fr]">
                         <div>
                             <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tour</h4>
-                            <p class="mt-1 text-2xl font-extrabold text-slate-800">{{ $booking->tour->nombre }}</p>
+                            <p class="mt-1 text-2xl font-extrabold text-slate-800">{{ $payment->booking->tour->nombre }}</p>
 
                             <div class="mt-3 space-y-1.5 text-sm text-slate-700">
-                                <p><span class="font-semibold">ID de compra:</span> {{ $booking->purchase_id }}</p>
-                                @if(!empty($booking->passenger_name))
-                                    <p><span class="font-semibold">Persona registrada:</span> {{ $booking->passenger_name }}</p>
-                                @endif
-                                <p><span class="font-semibold">Cantidad (anticipo):</span> ${{ number_format($booking->amount_paid, 2) }}</p>
-                                <p><span class="font-semibold">Saldo por liquidar:</span> ${{ number_format(max(0, ($booking->tour->precio_total ?? 0) - $booking->totalApprovedPayments()), 2) }}</p>
-                                <p><span class="font-semibold">Fecha:</span> {{ $booking->created_at->format('d/m/Y H:i') }}</p>
-                                @if($booking->paymentDeadline())
-                                    <p><span class="font-semibold">Liquidar antes del:</span> {{ $booking->paymentDeadline()->format('d/m/Y') }}</p>
-                                @endif
+                                <p><span class="font-semibold">Referencia:</span> {{ $payment->reference }}</p>
+                                <p><span class="font-semibold">Pago #:</span> {{ $payment->payment_number }}</p>
+                                <p><span class="font-semibold">Cantidad:</span> ${{ number_format($payment->amount, 2) }}</p>
+                                <p><span class="font-semibold">Fecha límite:</span> {{ $payment->due_date->format('d/m/Y') }}</p>
+                                <p><span class="font-semibold">Fecha de envío:</span> {{ optional($payment->submitted_at)->format('d/m/Y H:i') }}</p>
                                 <p>
                                     <span class="font-semibold">Estado:</span>
-                                    <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
-                                        Pendiente de aprobacion
+                                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                                        Pendiente de revisión
                                     </span>
                                 </p>
                             </div>
@@ -48,22 +43,16 @@
 
                         <div class="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-3">
                             <p class="mb-1.5 text-xs font-semibold text-slate-600">Comprobante subido</p>
-                            <img src="{{ route('bookings.receipt-image', $booking->id) }}" alt="Comprobante"
+                            <img src="{{ route('bookings.payments.image', $payment->id) }}" alt="Comprobante"
                                  class="h-36 w-full rounded-lg border border-slate-200 object-contain bg-white">
                         </div>
                     </div>
 
-                    <div class="mt-5 space-y-3">
-                        @if($booking->payments->count() > 0)
-                            <div class="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
-                                Se generó tu <strong>plan de pagos quincenal</strong>. Entra a <strong>Mis tours</strong> para ver próximas fechas y subir cada comprobante.
-                            </div>
-                        @endif
-
-                        <a href="{{ route('bookings.my-tours', ['tour_id' => $booking->tour_id]) }}"
+                    <div class="mt-5">
+                        <a href="{{ route('bookings.my-tours', ['tour_id' => $payment->booking->tour_id]) }}"
                            class="block w-full rounded-xl px-4 py-2.5 text-center text-base font-bold text-white shadow-lg"
                            style="background: linear-gradient(90deg, #34d399 0%, #3b82f6 100%);">
-                            Ver plan de pagos
+                            Volver a mis pagos
                         </a>
                     </div>
                 </div>

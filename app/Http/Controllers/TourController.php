@@ -122,14 +122,25 @@ class TourController extends Controller
             'payment_deadline' => 'nullable|date',
         ]);
 
+        $previousTotal = (int) $tour->cupos_totales;
+        $previousAvailable = (int) $tour->cupos_disponibles;
+        $occupiedSeats = max(0, $previousTotal - $previousAvailable);
+
+        $newTotal = isset($data['capacidad'])
+            ? (int) $data['capacidad']
+            : $previousTotal;
+
+        $newAvailable = max(0, $newTotal - $occupiedSeats);
+
         $tour->update([
             'nombre' => $data['nombre'],
             'descripcion' => $data['descripcion'] ?? $tour->descripcion,
             'precio_total' => $data['precio_total'] ?? $tour->precio_total,
             'anticipo' => $data['anticipo'] ?? $tour->anticipo,
             'payment_installments' => $data['payment_installments'] ?? $tour->payment_installments,
-            'capacidad' => $data['capacidad'] ?? $tour->capacidad,
-            'cupos_totales' => $data['capacidad'] ?? $tour->cupos_totales,
+            'capacidad' => $newTotal,
+            'cupos_totales' => $newTotal,
+            'cupos_disponibles' => $newAvailable,
             'ubicacion' => $data['ubicacion'] ?? $tour->ubicacion,
             'punto_encuentro' => $data['punto_encuentro'] ?? $tour->punto_encuentro,
             'hora_salida' => $data['hora_salida'] ?? $tour->hora_salida,
@@ -138,15 +149,6 @@ class TourController extends Controller
             'fecha_fin' => $data['fecha_fin'] ?? $tour->fecha_fin,
             'payment_deadline' => $data['payment_deadline'] ?? $tour->payment_deadline,
         ]);
-
-        // Ajustar cupos_disponibles si la capacidad disminuyó
-        if (isset($data['capacidad'])) {
-            $newCap = (int) $data['capacidad'];
-            if ($tour->cupos_disponibles > $newCap) {
-                $tour->cupos_disponibles = $newCap;
-                $tour->save();
-            }
-        }
 
         return redirect()->route('tours.show', $tour->id)->with('status', 'Tour actualizado correctamente');
     }

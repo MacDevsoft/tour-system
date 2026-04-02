@@ -9,7 +9,7 @@
     </x-slot>
 
     <div class="py-10">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="mx-auto w-full max-w-[96rem] px-4 sm:px-6 lg:px-8">
             <div class="space-y-6">
                 @if(session('status'))
                     <div class="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200 shadow">
@@ -131,7 +131,7 @@
                             </div>
                         @else
                             <div class="overflow-x-auto overflow-y-hidden rounded-2xl border border-white/10 pb-1">
-                                <table class="min-w-[1180px] w-full text-sm text-slate-200">
+                                <table class="min-w-[1280px] w-full text-sm text-slate-200">
                                     <thead class="bg-slate-800 text-slate-100">
                                         <tr>
                                             <th class="px-4 py-3 text-center font-semibold">#</th>

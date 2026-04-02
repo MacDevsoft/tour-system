@@ -1,19 +1,25 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">Administración</h2>
+        <h2 class="inline-flex items-center gap-2 font-semibold text-xl text-white leading-tight">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2 3 6v6c0 5 3.8 9.7 9 10 5.2-.3 9-5 9-10V6l-9-4Zm0 2.2 7 3.1V12c0 4-2.9 7.8-7 8.2-4.1-.4-7-4.2-7-8.2V7.3l7-3.1Z"/>
+            </svg>
+            <span>Administración</span>
+        </h2>
     </x-slot>
 
     <div class="py-10">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="space-y-6">
                 @if(session('status'))
-                    <div class="rounded-2xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800 shadow">
+                    <div class="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200 shadow">
                         {{ session('status') }}
                     </div>
                 @endif
 
                 @php
                     $totalTours = $tours->count();
+                    $formatHumanDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') : null;
                 @endphp
 
                 <section class="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-r from-slate-950 via-emerald-950/60 to-slate-950 px-6 py-7 shadow-2xl shadow-emerald-950/20">
@@ -69,6 +75,9 @@
                                     <div>
                                         <p class="text-lg font-bold text-white">{{ $tour->nombre }}</p>
                                         <p class="mt-1 text-sm text-slate-300">{{ $tour->fecha_inicio ?? 'Sin fecha' }} {{ $tour->fecha_fin ? '→ ' . $tour->fecha_fin : '' }}</p>
+                                        @if($tour->fecha_inicio)
+                                            <p class="text-[11px] text-slate-500">{{ $formatHumanDate($tour->fecha_inicio) }}{{ $tour->fecha_fin ? ' → ' . $formatHumanDate($tour->fecha_fin) : '' }}</p>
+                                        @endif
                                     </div>
                                     <span class="rounded-full bg-cyan-500/15 px-2.5 py-1 text-[11px] font-semibold text-cyan-300">
                                         {{ $tour->cupos_disponibles }}/{{ $tour->cupos_totales }}
@@ -107,7 +116,12 @@
                                 <input id="payment-filter-input" type="text" name="payment_ref" value="{{ $paymentSearch ?? '' }}"
                                        placeholder="Buscar por ID de pago o compra"
                                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white sm:w-80">
-                                <button type="submit" class="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-500">Buscar</button>
+                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M10 2a8 8 0 1 0 5.3 14l4.35 4.35 1.4-1.4-4.35-4.35A8 8 0 0 0 10 2Zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"/>
+                                    </svg>
+                                    <span>Buscar</span>
+                                </button>
                             </form>
                         </div>
 
@@ -124,8 +138,8 @@
                                             <th class="px-4 py-3 text-center font-semibold">Usuario</th>
                                             <th class="px-4 py-3 text-center font-semibold">Persona registrada</th>
                                             <th class="px-4 py-3 text-center font-semibold">Correo</th>
-                                            <th class="px-4 py-3 text-center font-semibold">ID compra</th>
-                                            <th class="px-4 py-3 text-center font-semibold">ID pago</th>
+                                            <th class="px-4 py-3 text-right font-semibold whitespace-nowrap">ID compra</th>
+                                            <th class="px-4 py-3 text-right font-semibold whitespace-nowrap">ID pago</th>
                                             <th class="px-4 py-3 text-center font-semibold">Monto</th>
                                             <th class="px-4 py-3 text-center font-semibold">Fecha</th>
                                             <th class="px-4 py-3 text-center font-semibold">Comprobante</th>
@@ -151,8 +165,8 @@
                                                 </td>
                                                 <td class="px-4 py-3 text-center align-middle text-slate-200">{{ $booking->passenger_name ?: $booking->user->name }}</td>
                                                 <td class="px-4 py-3 text-center align-middle text-slate-300">{{ $booking->user->email }}</td>
-                                                <td class="px-4 py-3 text-center align-middle font-medium text-white">{{ $booking->purchase_id }}</td>
-                                                <td class="px-4 py-3 text-center align-middle text-xs">
+                                                <td class="px-4 py-3 text-right align-middle font-medium text-white whitespace-nowrap">{{ $booking->purchase_id }}</td>
+                                                <td class="px-4 py-3 text-right align-middle text-xs whitespace-nowrap">
                                                     @if($initialPaymentRef)
                                                         <div class="font-semibold text-cyan-200">{{ $initialPaymentRef }}</div>
                                                     @else
@@ -160,23 +174,35 @@
                                                     @endif
                                                 </td>
                                                 <td class="px-4 py-3 text-center align-middle font-semibold text-white">${{ number_format($booking->amount_paid, 2) }}</td>
-                                                <td class="px-4 py-3 text-center align-middle text-slate-300">{{ $booking->created_at->format('d/m/Y H:i') }}</td>
+                                                <td class="px-4 py-3 text-center align-middle text-slate-300">
+                                                    <span class="block">{{ $booking->created_at->format('d/m/Y H:i') }}</span>
+                                                    <span class="block text-[11px] text-slate-500">{{ $booking->created_at->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                                                </td>
                                                 <td class="px-4 py-3 text-center align-middle">
-                                                    <button type="button" onclick="openReceiptModal('{{ route('bookings.receipt-image', $booking->id) }}')" class="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
-                                                        Ver comprobante
+                                                    <button type="button" onclick="openReceiptModal('{{ route('bookings.receipt-image', $booking->id) }}')" class="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                            <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7Zm0 12a5 5 0 1 1 5-5 5 5 0 0 1-5 5Z"/>
+                                                        </svg>
+                                                        <span>Ver comprobante</span>
                                                     </button>
                                                 </td>
                                                 <td class="px-4 py-3 text-center align-middle">
                                                     <div class="flex flex-col items-center gap-2">
-                                                        <a href="{{ route('admin.bookings.show', $booking->id) }}" class="rounded-xl bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500">
-                                                            Ver detalle
+                                                        <a href="{{ route('admin.bookings.show', $booking->id) }}" class="inline-flex items-center gap-1 rounded-xl bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                                <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7Zm0 12a5 5 0 1 1 5-5 5 5 0 0 1-5 5Z"/>
+                                                            </svg>
+                                                            <span>Ver detalle</span>
                                                         </a>
 
                                                         @if($booking->status === 'pending')
                                                             <form action="{{ route('admin.bookings.approve', $booking->id) }}" method="POST" class="inline-block">
                                                                 @csrf
-                                                                <button type="submit" class="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
-                                                                    Aprobar
+                                                                <button type="submit" class="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                                        <path d="m9.55 18-5.7-5.7 1.4-1.4 4.3 4.3 9.2-9.2 1.4 1.4L9.55 18Z"/>
+                                                                    </svg>
+                                                                    <span>Aprobar</span>
                                                                 </button>
                                                             </form>
                                                         @elseif($booking->status === 'approved')

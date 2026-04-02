@@ -12,6 +12,7 @@
         'approved' => ['Aprobado', 'bg-green-100 text-green-700'],
         'cancelled' => ['Cancelado', 'bg-red-100 text-red-700'],
     ];
+    $formatHumanDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') : null;
 @endphp
 
 <div class="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
@@ -39,6 +40,7 @@
             <div>
                 <p class="text-sm font-semibold text-white">Anticipo registrado</p>
                 <p class="text-xs text-slate-300">ID {{ $booking->purchase_id }} · {{ $booking->created_at->format('d/m/Y H:i') }}</p>
+                <p class="text-[11px] text-slate-500">{{ $booking->created_at->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button type="button" onclick="openReceiptModal('{{ route('bookings.receipt-image', $booking->id) }}')" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
@@ -67,12 +69,12 @@
                 @if($tour->payment_installments)
                     El administrador configuró <strong>{{ $tour->payment_installments }} pago(s)</strong>
                     @if($deadline)
-                        con fecha límite de liquidación el <strong>{{ $deadline->format('d/m/Y') }}</strong>.
+                        con fecha límite de liquidación el <strong>{{ $deadline->format('d/m/Y') }}</strong> ({{ $deadline->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}).
                     @endif
                 @else
                     El saldo restante se divide en pagos el <strong>día 1 y 15</strong> de cada mes.
                     @if($deadline)
-                        Todo debe quedar liquidado a más tardar el <strong>{{ $deadline->format('d/m/Y') }}</strong>.
+                        Todo debe quedar liquidado a más tardar el <strong>{{ $deadline->format('d/m/Y') }}</strong> ({{ $deadline->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}).
                     @endif
                 @endif
                 Cada fecha tiene <strong>3 días de tolerancia</strong>; después la reserva se cancela.
@@ -103,8 +105,14 @@
                         <tr>
                             <td class="px-3 py-3 text-center align-middle font-medium text-white">Pago {{ $payment->payment_number }}</td>
                             <td class="px-3 py-3 text-center align-middle text-xs font-semibold text-cyan-200">{{ $payment->reference }}</td>
-                            <td class="px-3 py-3 text-center align-middle">{{ $payment->due_date->format('d/m/Y') }}</td>
-                            <td class="px-3 py-3 text-center align-middle">{{ $payment->grace_until->format('d/m/Y') }}</td>
+                            <td class="px-3 py-3 text-center align-middle">
+                                <span class="block">{{ $payment->due_date->format('d/m/Y') }}</span>
+                                <span class="block text-[11px] text-slate-500">{{ $payment->due_date->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                            </td>
+                            <td class="px-3 py-3 text-center align-middle">
+                                <span class="block">{{ $payment->grace_until->format('d/m/Y') }}</span>
+                                <span class="block text-[11px] text-slate-500">{{ $payment->grace_until->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                            </td>
                             <td class="px-3 py-3 text-center align-middle font-semibold">${{ number_format($payment->amount, 2) }}</td>
                             <td class="px-3 py-3 text-center align-middle">
                                 <span class="inline-block rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClasses }}">{{ $statusLabel }}</span>
@@ -170,8 +178,8 @@
                 @endif
 
                 <div class="mb-4 rounded-xl border border-cyan-900 bg-cyan-950/30 px-3 py-2 text-sm text-cyan-100">
-                    <p><span class="font-semibold">Fecha límite:</span> {{ $payment->due_date->format('d/m/Y') }}</p>
-                    <p><span class="font-semibold">Tolerancia máxima:</span> {{ $payment->grace_until->format('d/m/Y') }}</p>
+                    <p><span class="font-semibold">Fecha límite:</span> {{ $payment->due_date->format('d/m/Y') }} <span class="text-xs text-cyan-200">({{ $payment->due_date->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }})</span></p>
+                    <p><span class="font-semibold">Tolerancia máxima:</span> {{ $payment->grace_until->format('d/m/Y') }} <span class="text-xs text-cyan-200">({{ $payment->grace_until->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }})</span></p>
                 </div>
 
                 <form action="{{ route('bookings.payments.submit', $payment->id) }}" method="POST" enctype="multipart/form-data">

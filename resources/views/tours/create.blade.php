@@ -30,72 +30,72 @@
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-slate-200">Nombre</label>
-                            <input type="text" name="nombre" value="{{ old('nombre') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" required>
+                            <input type="text" name="nombre" value="{{ old('nombre') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500" required>
                         </div>
 
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-slate-200">Descripción</label>
-                            <textarea name="descripcion" rows="4" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">{{ old('descripcion') }}</textarea>
+                            <textarea name="descripcion" rows="4" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">{{ old('descripcion') }}</textarea>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Precio total</label>
-                            <input type="number" step="0.01" name="precio_total" value="{{ old('precio_total') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="number" step="0.01" name="precio_total" value="{{ old('precio_total') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Anticipo</label>
-                            <input type="number" step="0.01" name="anticipo" value="{{ old('anticipo') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="number" step="0.01" name="anticipo" value="{{ old('anticipo') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Número de pagos</label>
-                            <input type="number" name="payment_installments" value="{{ old('payment_installments') }}" min="1" max="60" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" placeholder="Ej. 15">
+                            <input type="number" name="payment_installments" value="{{ old('payment_installments') }}" min="1" max="60" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500" placeholder="Ej. 15">
                             <p class="mt-1 text-xs text-slate-400">Cuántos pagos deseas generar para liquidar el tour.</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Fecha límite de liquidación</label>
-                            <input type="date" name="payment_deadline" value="{{ old('payment_deadline') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="date" name="payment_deadline" value="{{ old('payment_deadline') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                             <p class="mt-1 text-xs text-slate-400">Todos los pagos deberán quedar cubiertos antes de esta fecha.</p>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Capacidad</label>
-                            <input type="number" name="capacidad" value="{{ old('capacidad') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="number" name="capacidad" value="{{ old('capacidad') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Transporte</label>
-                            <input type="text" name="transporte" value="{{ old('transporte') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="text" name="transporte" value="{{ old('transporte') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Ubicación</label>
-                            <input type="text" name="ubicacion" value="{{ old('ubicacion') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="text" name="ubicacion" value="{{ old('ubicacion') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Punto de encuentro</label>
-                            <input type="text" name="punto_encuentro" value="{{ old('punto_encuentro') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="text" name="punto_encuentro" value="{{ old('punto_encuentro') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Fecha inicio</label>
-                            <input type="date" name="fecha_inicio" value="{{ old('fecha_inicio') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="date" name="fecha_inicio" value="{{ old('fecha_inicio') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Fecha fin</label>
-                            <input type="date" name="fecha_fin" value="{{ old('fecha_fin') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="date" name="fecha_fin" value="{{ old('fecha_fin') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-200">Hora de salida</label>
-                            <input type="time" name="hora_salida" value="{{ old('hora_salida') }}" class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                            <input type="time" name="hora_salida" value="{{ old('hora_salida') }}" class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                         </div>
                     </div>
 
                     <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
-                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto">
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 sm:w-auto">
                             Guardar tour
                         </button>
-                        <button type="reset" class="inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 sm:w-auto">
+                        <button type="reset" class="inline-flex w-full items-center justify-center rounded-xl border border-white/10 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-slate-800 sm:w-auto">
                             Limpiar formulario
                         </button>
                     </div>

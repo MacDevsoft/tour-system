@@ -6,7 +6,9 @@ use App\Models\Booking;
 use App\Models\BookingPayment;
 use App\Models\Tour;
 use App\Notifications\PaymentApprovedNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class BookingController extends Controller
@@ -359,6 +361,71 @@ class BookingController extends Controller
         $booking->user?->notify(new PaymentApprovedNotification($payment));
 
         return back()->with('status', 'Pago aprobado correctamente.');
+    }
+
+    public function pollPaymentNotifications(): JsonResponse
+    {
+        if (!auth()->check() || auth()->user()->role !== 'user') {
+            abort(403);
+        }
+
+        $alerts = collect();
+        $user = auth()->user();
+
+        if (Schema::hasTable('notifications')) {
+            $paymentApprovedAlerts = $user
+                ->unreadNotifications()
+                ->where('type', PaymentApprovedNotification::class)
+                ->latest()
+                ->take(6)
+                ->get();
+
+            $alerts = $paymentApprovedAlerts->map(function ($item) {
+                return array_merge($item->data ?? [], [
+                    'notification_id' => $item->id,
+                ]);
+            });
+
+            if ($paymentApprovedAlerts->isNotEmpty()) {
+                $paymentApprovedAlerts->markAsRead();
+            }
+        }
+
+        if (Schema::hasTable('booking_payments')) {
+            $fallbackApprovedPayments = BookingPayment::with('booking.tour')
+                ->where('status', 'approved')
+                ->whereNotNull('approved_at')
+                ->where('approved_at', '>=', now()->subHours(24))
+                ->whereHas('booking', fn ($query) => $query->where('user_id', $user->id))
+                ->latest('approved_at')
+                ->take(6)
+                ->get()
+                ->map(function ($payment) {
+                    return [
+                        'title' => 'Tu pago fue aceptado',
+                        'message' => 'Se aprobó tu comprobante y tu avance se actualizó correctamente.',
+                        'payment_id' => $payment->id,
+                        'payment_reference' => $payment->reference,
+                        'amount' => (float) $payment->amount,
+                        'tour_name' => optional(optional($payment->booking)->tour)->nombre,
+                        'approved_at' => optional($payment->approved_at)->format('d/m/Y H:i'),
+                        'url' => $payment->booking
+                            ? route('bookings.my-tours', ['tour_id' => $payment->booking->tour_id, 'booking_id' => $payment->booking->id])
+                            : route('bookings.my-tours'),
+                    ];
+                });
+
+            $alerts = $alerts
+                ->concat($fallbackApprovedPayments)
+                ->unique(fn ($item) => ($item['payment_reference'] ?? '') . '|' . ($item['approved_at'] ?? '') . '|' . ($item['notification_id'] ?? ''))
+                ->take(6)
+                ->values();
+        }
+
+        return response()->json([
+            'alerts' => $alerts,
+            'server_time' => now()->toIso8601String(),
+        ]);
     }
 
     public function receiptImage(Booking $booking)

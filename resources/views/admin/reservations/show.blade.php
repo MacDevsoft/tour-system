@@ -1,6 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">Detalle de pagos del usuario</h2>
+        <h2 class="inline-flex items-center gap-2 font-semibold text-xl text-white leading-tight">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M3 5h18v14H3V5Zm2 2v10h14V7H5Zm2 2h4v2H7V9Zm0 4h10v2H7v-2Z"/>
+            </svg>
+            <span>Detalle de pagos del usuario</span>
+        </h2>
     </x-slot>
 
     <div class="py-10">
@@ -11,8 +16,11 @@
                         <h3 class="text-2xl font-bold text-white">{{ $booking->user->name }}</h3>
                         <p class="text-sm text-slate-300">{{ $booking->user->email }} · Tour: {{ $booking->tour->nombre }}</p>
                     </div>
-                    <a href="{{ route('admin.index', ['tour_id' => $booking->tour_id, 'status' => $booking->status === 'rejected' ? 'rejected' : ($booking->status === 'approved' ? 'approved' : 'pending')]) }}" class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-black">
-                        Volver
+                    <a href="{{ route('admin.index', ['tour_id' => $booking->tour_id, 'status' => $booking->status === 'rejected' ? 'rejected' : ($booking->status === 'approved' ? 'approved' : 'pending')]) }}" class="inline-flex items-center gap-2 rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-black">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="m12 5-7 7 7 7v-4h7v-6h-7V5Z"/>
+                        </svg>
+                        <span>Volver</span>
                     </a>
                 </div>
 
@@ -37,6 +45,7 @@
                     $deadline = $booking->paymentDeadline();
                     $totalPaid = $booking->totalApprovedPayments();
                     $remaining = max(0, (float) ($booking->tour->precio_total ?? 0) - $totalPaid);
+                    $formatHumanDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') : null;
                 @endphp
 
                 <div class="mt-5 grid gap-3 md:grid-cols-4">
@@ -55,6 +64,9 @@
                     <div class="rounded-xl border border-slate-700 bg-slate-900 p-3">
                         <p class="text-xs uppercase tracking-wide text-slate-400">Límite final</p>
                         <p class="mt-1 text-lg font-bold text-cyan-300">{{ $deadline ? $deadline->format('d/m/Y') : 'N/D' }}</p>
+                        @if($deadline)
+                            <p class="text-[11px] text-slate-500">{{ $deadline->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</p>
+                        @endif
                     </div>
                 </div>
 
@@ -70,15 +82,24 @@
                         <div>
                             <p class="text-lg font-bold text-white">Anticipo inicial</p>
                             <p class="text-sm text-slate-300">ID {{ $booking->purchase_id }} · Registrado el {{ $booking->created_at->format('d/m/Y H:i') }}</p>
+                            <p class="text-[11px] text-slate-500">{{ $booking->created_at->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button type="button" onclick="openReceiptModal('{{ route('bookings.receipt-image', $booking->id) }}')" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
-                                Ver comprobante
+                            <button type="button" onclick="openReceiptModal('{{ route('bookings.receipt-image', $booking->id) }}')" class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7Zm0 12a5 5 0 1 1 5-5 5 5 0 0 1-5 5Z"/>
+                                </svg>
+                                <span>Ver comprobante</span>
                             </button>
                             @if($booking->status === 'pending')
                                 <form action="{{ route('admin.bookings.approve', $booking->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white">Aprobar reserva</button>
+                                    <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <path d="m9.55 18-5.7-5.7 1.4-1.4 4.3 4.3 9.2-9.2 1.4 1.4L9.55 18Z"/>
+                                        </svg>
+                                        <span>Aprobar reserva</span>
+                                    </button>
                                 </form>
                             @elseif($booking->status === 'approved')
                                 <span class="inline-block rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Reserva aprobada</span>
@@ -87,8 +108,11 @@
                             @endif
 
                             @if($booking->status !== 'rejected')
-                                <button type="button" onclick="openCancelBookingModal()" class="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white">
-                                    Cancelar reservación
+                                <button type="button" onclick="openCancelBookingModal()" class="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M6 7h12v2H6V7Zm1 3h10l-1 10H8L7 10Zm3-5h4l1 1h4v2H5V6h4l1-1Z"/>
+                                    </svg>
+                                    <span>Cancelar reservación</span>
                                 </button>
                             @endif
                         </div>
@@ -106,7 +130,7 @@
                         <thead class="bg-slate-800 text-slate-100">
                             <tr>
                                 <th class="px-3 py-3 text-center font-semibold">Pago</th>
-                                <th class="px-3 py-3 text-center font-semibold">ID pago</th>
+                                <th class="px-3 py-3 text-right font-semibold whitespace-nowrap">ID pago</th>
                                 <th class="px-3 py-3 text-center font-semibold">Monto</th>
                                 <th class="px-3 py-3 text-center font-semibold">Fecha límite</th>
                                 <th class="px-3 py-3 text-center font-semibold">Tolerancia</th>
@@ -135,17 +159,26 @@
                                 @endphp
                                 <tr class="admin-payment-detail-row" data-search="{{ strtolower($payment->reference . ' ' . $payment->payment_number . ' ' . $payment->status) }}">
                                     <td class="px-3 py-3 text-center align-middle font-medium text-white">Pago {{ $payment->payment_number }}</td>
-                                    <td class="px-3 py-3 text-center align-middle text-xs font-semibold text-cyan-200">{{ $payment->reference }}</td>
+                                    <td class="px-3 py-3 text-right align-middle text-xs font-semibold text-cyan-200 whitespace-nowrap">{{ $payment->reference }}</td>
                                     <td class="px-3 py-3 text-center align-middle font-semibold">${{ number_format($payment->amount, 2) }}</td>
-                                    <td class="px-3 py-3 text-center align-middle">{{ $payment->due_date->format('d/m/Y') }}</td>
-                                    <td class="px-3 py-3 text-center align-middle">{{ $payment->grace_until->format('d/m/Y') }}</td>
+                                    <td class="px-3 py-3 text-center align-middle">
+                                        <span class="block">{{ $payment->due_date->format('d/m/Y') }}</span>
+                                        <span class="block text-[11px] text-slate-500">{{ $payment->due_date->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                                    </td>
+                                    <td class="px-3 py-3 text-center align-middle">
+                                        <span class="block">{{ $payment->grace_until->format('d/m/Y') }}</span>
+                                        <span class="block text-[11px] text-slate-500">{{ $payment->grace_until->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                                    </td>
                                     <td class="px-3 py-3 text-center align-middle">
                                         <span class="inline-block rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClasses }}">{{ $statusLabel }}</span>
                                     </td>
                                     <td class="px-3 py-3 text-center align-middle">
                                         @if($payment->receipt_path)
-                                            <button type="button" onclick="openReceiptModal('{{ route('bookings.payments.image', $payment->id) }}')" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
-                                                Ver comprobante
+                                            <button type="button" onclick="openReceiptModal('{{ route('bookings.payments.image', $payment->id) }}')" class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7Zm0 12a5 5 0 1 1 5-5 5 5 0 0 1-5 5Z"/>
+                                                </svg>
+                                                <span>Ver comprobante</span>
                                             </button>
                                         @else
                                             <span class="text-xs text-slate-400">Sin comprobante</span>
@@ -155,7 +188,12 @@
                                         @if($payment->status === 'submitted' && $booking->status !== 'rejected')
                                             <form action="{{ route('admin.payments.approve', $payment->id) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white">Aprobar pago</button>
+                                                <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                        <path d="m9.55 18-5.7-5.7 1.4-1.4 4.3 4.3 9.2-9.2 1.4 1.4L9.55 18Z"/>
+                                                    </svg>
+                                                    <span>Aprobar pago</span>
+                                                </button>
                                             </form>
                                         @elseif($payment->status === 'approved')
                                             <span class="text-xs font-semibold text-emerald-300">Listo</span>

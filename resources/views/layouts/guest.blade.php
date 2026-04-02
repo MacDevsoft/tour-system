@@ -5,7 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Tours by Ravers') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/ravers-logo.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('images/ravers-logo.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -60,6 +62,28 @@
                     </div>
                 </div>
             </div>
+
+            <footer class="border-t border-white/10 bg-slate-950/85 px-4 py-5 backdrop-blur-xl sm:px-6 lg:px-8">
+                <div class="mx-auto flex w-full max-w-6xl flex-col gap-3 text-sm text-slate-300 md:flex-row md:items-center md:justify-between">
+                    <p>
+                        © {{ now()->year }} Tours by Ravers. Desarrollado por <span class="font-semibold text-cyan-300">MacDevSoft</span>.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <a href="https://www.instagram.com/toursbyravers?igsh=MWp6MG5zd2JmcGczYQ==" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-1.5 text-slate-200 transition hover:border-cyan-400/40 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5a4.25 4.25 0 0 0 4.25 4.25h8.5a4.25 4.25 0 0 0 4.25-4.25v-8.5a4.25 4.25 0 0 0-4.25-4.25h-8.5Zm9.1 1.15a1.05 1.05 0 1 1 0 2.1 1.05 1.05 0 0 1 0-2.1ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+                            </svg>
+                            <span>Instagram</span>
+                        </a>
+                        <a href="https://wa.me/525518936972" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-1.5 text-slate-200 transition hover:border-emerald-400/40 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2.02a9.97 9.97 0 0 1 8.62 15.02l1.24 4.53-4.64-1.22A9.98 9.98 0 1 1 12 2.02Zm0 1.5a8.48 8.48 0 0 0-7.43 12.55l.18.33-.75 2.74 2.81-.73.31.18A8.48 8.48 0 1 0 12 3.52Zm-4.4 3.95c.16-.37.34-.38.5-.39h.42c.14 0 .34.05.52.44.18.39.6 1.46.65 1.57.05.11.08.24 0 .39-.08.16-.12.25-.24.39-.12.14-.26.32-.37.43-.12.12-.24.25-.1.49.14.24.62 1.03 1.34 1.67.92.82 1.7 1.07 1.94 1.19.24.12.37.1.5-.06.14-.16.58-.67.73-.91.16-.24.32-.2.54-.12.22.08 1.39.66 1.62.78.23.12.39.18.45.28.06.1.06.58-.13 1.14-.19.56-1.1 1.07-1.52 1.14-.39.06-.89.09-1.43-.09-.33-.11-.74-.24-1.27-.47-2.24-.97-3.72-3.31-3.84-3.48-.12-.17-.91-1.21-.91-2.31 0-1.1.58-1.64.79-1.86Z"/>
+                            </svg>
+                            <span>WhatsApp: +52 55 1893 6972</span>
+                        </a>
+                    </div>
+                </div>
+            </footer>
         </div>
     </body>
 </html>

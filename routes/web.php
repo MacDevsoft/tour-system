@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/mis-pagos/{payment}/enviar', [BookingController::class, 'submitPayment'])->name('bookings.payments.submit');
     Route::get('/mis-pagos/{payment}/comprobante', [BookingController::class, 'paymentReceipt'])->name('bookings.payments.receipt');
     Route::get('/mis-pagos/{payment}/imagen', [BookingController::class, 'paymentReceiptImage'])->name('bookings.payments.image');
+    Route::get('/notificaciones/pagos/aprobados', [BookingController::class, 'pollPaymentNotifications'])->name('notifications.payments.poll');
 });
 
 // Administración (admin)

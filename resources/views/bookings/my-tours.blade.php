@@ -23,6 +23,7 @@
                 @else
                     @php
                         $allBookings = $tourGroups->flatten(1);
+                        $formatHumanDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') : 'Por confirmar';
                         $selectedTourId = (int) request('tour_id', $tourGroups->keys()->first());
                         $selectedGroup = $tourGroups->get($selectedTourId) ?? $tourGroups->first();
                         $selectedTour = optional($selectedGroup->first())->tour;
@@ -71,7 +72,12 @@
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
                             <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Próximo pago</p>
                             <p class="mt-2 text-xl font-black text-white">{{ $nextDuePayment ? '$' . number_format($nextDuePayment->amount, 2) : 'Sin pagos' }}</p>
-                            <p class="mt-1 text-sm text-slate-400">{{ $nextDuePayment ? 'Vence ' . $nextDuePayment->due_date->format('d/m/Y') : 'Sin pendientes' }}</p>
+                            <p class="mt-1 text-sm text-slate-400">
+                                {{ $nextDuePayment ? 'Vence ' . $nextDuePayment->due_date->format('d/m/Y') : 'Sin pendientes' }}
+                                @if($nextDuePayment)
+                                    <span class="block text-[11px] text-slate-500">{{ $nextDuePayment->due_date->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                                @endif
+                            </p>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
                             <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Saldo pendiente</p>
@@ -108,7 +114,12 @@
                                         </span>
                                     </div>
                                     <div class="mt-4 grid gap-2 text-sm text-slate-300">
-                                        <div class="rounded-xl border border-white/5 bg-slate-900/80 px-3 py-2">📅 {{ $tour->fecha_inicio ?? 'Sin fecha' }} {{ $tour->fecha_fin ? '→ ' . $tour->fecha_fin : '' }}</div>
+                                        <div class="rounded-xl border border-white/5 bg-slate-900/80 px-3 py-2">
+                                            <p>📅 {{ $tour->fecha_inicio ?? 'Sin fecha' }} {{ $tour->fecha_fin ? '→ ' . $tour->fecha_fin : '' }}</p>
+                                            @if($tour->fecha_inicio)
+                                                <p class="text-[11px] text-slate-500">{{ $formatHumanDate($tour->fecha_inicio) }}{{ $tour->fecha_fin ? ' → ' . $formatHumanDate($tour->fecha_fin) : '' }}</p>
+                                            @endif
+                                        </div>
                                         <div class="rounded-xl border border-white/5 bg-slate-900/80 px-3 py-2">👥 Cupos: {{ $tour->cupos_disponibles }}/{{ $tour->cupos_totales }}</div>
                                     </div>
                                 </a>
@@ -205,6 +216,7 @@
                                         <div>
                                             <p class="text-lg font-bold text-white">Detalle de {{ $selectedBooking->passenger_name ?: $selectedBooking->user->name }}</p>
                                             <p class="text-xs text-slate-300">{{ $selectedBooking->purchase_id }} · registrada el {{ $selectedBooking->created_at->format('d/m/Y H:i') }}</p>
+                                            <p class="text-[11px] text-slate-500">{{ $selectedBooking->created_at->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</p>
                                         </div>
                                         <span class="inline-block rounded-full px-2.5 py-1 text-xs font-semibold {{ $badgeClasses }}">{{ $badgeLabel }}</span>
                                     </div>

@@ -29,22 +29,22 @@
             @if($accounts->count() > 0)
                 <div class="space-y-4">
                     @foreach($accounts as $account)
-                        <article class="rounded-2xl border p-4 shadow-lg shadow-slate-950/5 sm:p-5 {{ $account->is_active ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white' }}">
+                        <article class="rounded-2xl border p-4 shadow-lg shadow-black/20 sm:p-5 {{ $account->is_active ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-white/10 bg-slate-950/70' }}">
                             <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <div class="sm:col-span-2">
-                                        <p class="text-lg font-bold text-slate-900">{{ $account->bank_name }}</p>
-                                        <p class="text-sm text-slate-600">{{ $account->account_type }}</p>
+                                        <p class="text-lg font-bold text-white">{{ $account->bank_name }}</p>
+                                        <p class="text-sm text-slate-300">{{ $account->account_type }}</p>
                                     </div>
 
-                                    <div class="rounded-xl bg-slate-50 px-3 py-2">
+                                    <div class="rounded-xl border border-white/10 bg-slate-900 px-3 py-2">
                                         <p class="text-[11px] uppercase tracking-wide text-slate-500">Cuenta</p>
-                                        <p class="mt-1 text-sm font-semibold text-slate-800">{{ $account->account_number }}</p>
+                                        <p class="mt-1 text-sm font-semibold text-slate-100">{{ $account->account_number }}</p>
                                     </div>
 
-                                    <div class="rounded-xl bg-slate-50 px-3 py-2">
+                                    <div class="rounded-xl border border-white/10 bg-slate-900 px-3 py-2">
                                         <p class="text-[11px] uppercase tracking-wide text-slate-500">Titular</p>
-                                        <p class="mt-1 text-sm font-semibold text-slate-800">{{ $account->account_holder }}</p>
+                                        <p class="mt-1 text-sm font-semibold text-slate-100">{{ $account->account_holder }}</p>
                                     </div>
                                 </div>
 
@@ -65,14 +65,14 @@
                                             </a>
                                         @endif
 
-                                        <a href="{{ route('bank_accounts.edit', $account->id) }}" class="inline-flex w-full items-center justify-center rounded-xl bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-200">
+                                        <a href="{{ route('bank_accounts.edit', $account->id) }}" class="inline-flex w-full items-center justify-center rounded-xl bg-amber-500/20 px-3 py-2 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30">
                                             Editar
                                         </a>
 
                                         <form action="{{ route('bank_accounts.destroy', $account->id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta cuenta?')" class="w-full">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-red-100 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-200">
+                                            <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/30">
                                                 Eliminar
                                             </button>
                                         </form>

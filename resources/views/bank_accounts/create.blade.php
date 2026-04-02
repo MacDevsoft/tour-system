@@ -20,25 +20,25 @@
                     <div class="md:col-span-2">
                         <label class="mb-1 block text-sm font-semibold text-white">Tipo de transferencia</label>
                         <input type="text" name="account_type" value="TRANSFERENCIA ESPEI"
-                               class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm">
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500">
                     </div>
 
                     <div>
                         <label class="mb-1 block text-sm font-semibold text-white">Banco</label>
                         <input type="text" name="bank_name" placeholder="Ej: Banco Pichincha"
-                               class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" required>
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500" required>
                     </div>
 
                     <div>
                         <label class="mb-1 block text-sm font-semibold text-white">Número de cuenta</label>
                         <input type="text" name="account_number" placeholder="Ej: 2200123456789"
-                               class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" required>
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500" required>
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="mb-1 block text-sm font-semibold text-white">Nombre del titular</label>
                         <input type="text" name="account_holder" placeholder="Ej: Juan Pérez"
-                               class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" required>
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500" required>
                     </div>
                 </div>
 
@@ -46,7 +46,7 @@
                     <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 sm:w-auto">
                         Guardar cuenta
                     </button>
-                    <a href="{{ route('bank_accounts.index') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 sm:w-auto">
+                    <a href="{{ route('bank_accounts.index') }}" class="inline-flex w-full items-center justify-center rounded-xl border border-white/10 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-slate-800 sm:w-auto">
                         Cancelar
                     </a>
                 </div>

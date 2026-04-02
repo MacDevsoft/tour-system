@@ -1,7 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">
-            Inicio
+        <h2 class="inline-flex items-center gap-2 font-semibold text-xl text-white leading-tight">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 3 2 11h3v10h6v-6h2v6h6V11h3L12 3Z"/>
+            </svg>
+            <span>Inicio</span>
         </h2>
     </x-slot>
 
@@ -27,6 +30,7 @@
                             ->get();
                         $bank = \App\Models\BankAccount::active();
                         $formatDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->format('d/m/Y') : 'Por confirmar';
+                        $formatHumanDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') : 'Por confirmar';
                     @endphp
 
                     <section class="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-r from-slate-950 via-emerald-950/60 to-slate-950 px-6 py-7 shadow-2xl shadow-emerald-950/20">
@@ -48,11 +52,21 @@
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <a href="/tours" class="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-left transition hover:bg-cyan-500/15">
                                     <p class="text-xs uppercase tracking-[0.2em] text-cyan-300">Operación</p>
-                                    <p class="mt-1 text-base font-bold text-white">Ver / editar tours</p>
+                                    <p class="mt-1 inline-flex items-center gap-2 text-base font-bold text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <path d="M3 4h18v2H3V4Zm0 7h18v2H3v-2Zm0 7h18v2H3v-2Z"/>
+                                        </svg>
+                                        <span>Ver / editar tours</span>
+                                    </p>
                                 </a>
                                 <a href="{{ route('admin.index') }}" class="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-left transition hover:bg-amber-500/15">
                                     <p class="text-xs uppercase tracking-[0.2em] text-amber-300">Revisión</p>
-                                    <p class="mt-1 text-base font-bold text-white">Reservaciones y pagos</p>
+                                    <p class="mt-1 inline-flex items-center gap-2 text-base font-bold text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <path d="M3 5h18v14H3V5Zm2 2v10h14V7H5Zm2 2h4v2H7V9Zm0 4h10v2H7v-2Z"/>
+                                        </svg>
+                                        <span>Reservaciones y pagos</span>
+                                    </p>
                                 </a>
                                 <a href="{{ route('bank_accounts.index') }}" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10 sm:col-span-2">
                                     <p class="text-xs uppercase tracking-[0.2em] text-slate-300">Finanzas</p>
@@ -128,7 +142,10 @@
                                                 };
                                             @endphp
                                             <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $statusClasses }}">{{ $statusLabel }}</span>
-                                            <span class="text-xs text-slate-500">{{ $booking->created_at->format('d/m H:i') }}</span>
+                                            <span class="text-right">
+                                                <span class="block text-xs text-slate-500">{{ $booking->created_at->format('d/m H:i') }}</span>
+                                                <span class="block text-[11px] text-slate-600">{{ $booking->created_at->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                                            </span>
                                         </div>
                                     </div>
                                 @empty
@@ -156,6 +173,7 @@
                                                     {{ $formatDate($tour->fecha_inicio) }}
                                                 </span>
                                             </div>
+                                            <p class="mt-1 text-[11px] text-slate-500">{{ $formatHumanDate($tour->fecha_inicio) }}</p>
                                             <p class="mt-2 text-xs text-slate-300">${{ number_format($tour->precio_total ?? 0, 2) }} · {{ $tour->cupos_disponibles }} cupos disponibles</p>
                                         </div>
                                     @empty
@@ -180,6 +198,7 @@
                             ->latest()
                             ->get();
                         $myBookedTourIds = $myBookings->pluck('tour_id')->flip();
+                        $bookingCountsByTour = $myBookings->groupBy('tour_id')->map->count();
                         $activeBookings = $myBookings->count();
                         $approvedBookings = $myBookings->where('status', 'approved')->count();
                         $pendingBookings = $myBookings->where('status', 'pending')->count();
@@ -195,6 +214,7 @@
                             ->first();
                         $bank = \App\Models\BankAccount::active();
                         $formatDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->format('d/m/Y') : 'Por confirmar';
+                        $formatHumanDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') : 'Por confirmar';
                     @endphp
 
                     <section class="relative overflow-hidden rounded-3xl border border-cyan-500/20 bg-gradient-to-r from-slate-950 via-cyan-950/60 to-slate-950 px-6 py-7 shadow-2xl shadow-cyan-950/20">
@@ -211,11 +231,17 @@
                             </div>
 
                             <div class="flex flex-wrap gap-3">
-                                <a href="#tours-disponibles" class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400">
-                                    Explorar tours
+                                <a href="#tours-disponibles" class="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm0 2a8 8 0 0 1 6.9 12H17a4 4 0 1 0-4 4v1.9A8 8 0 0 1 12 4Zm-2 8a2 2 0 1 1 2 2 2 2 0 0 1-2-2Z"/>
+                                    </svg>
+                                    <span>Explorar tours</span>
                                 </a>
-                                <a href="{{ route('bookings.my-tours') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
-                                    Ver mis tours
+                                <a href="{{ route('bookings.my-tours') }}" class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M4 4h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 3v-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 4v2h12V8H6Zm0 4v2h8v-2H6Z"/>
+                                    </svg>
+                                    <span>Ver mis tours</span>
                                 </a>
                             </div>
                         </div>
@@ -243,7 +269,12 @@
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
                             <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Próximo pago</p>
                             <p class="mt-2 text-xl font-black text-white">{{ $nextPayment ? '$' . number_format($nextPayment->amount, 2) : 'Sin pagos' }}</p>
-                            <p class="mt-1 text-sm text-slate-400">{{ $nextPayment ? 'Vence ' . $nextPayment->due_date->format('d/m/Y') : 'Todo al corriente' }}</p>
+                            <p class="mt-1 text-sm text-slate-400">
+                                {{ $nextPayment ? 'Vence ' . $nextPayment->due_date->format('d/m/Y') : 'Todo al corriente' }}
+                                @if($nextPayment)
+                                    <span class="block text-[11px] text-slate-500">{{ $nextPayment->due_date->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</span>
+                                @endif
+                            </p>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/20">
                             <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Saldo pendiente</p>
@@ -263,6 +294,7 @@
                                 <p class="text-xs uppercase tracking-[0.22em] text-emerald-300">Tu próxima aventura</p>
                                 <h3 class="mt-2 text-2xl font-bold text-white">{{ $nextTrip->tour->nombre }}</h3>
                                 <p class="mt-1 text-sm text-slate-300">{{ $nextTrip->tour->ubicacion ?: 'Ubicación por confirmar' }} · {{ $formatDate($nextTrip->tour->fecha_inicio) }}</p>
+                                <p class="mt-1 text-[11px] text-slate-500">{{ $formatHumanDate($nextTrip->tour->fecha_inicio) }}</p>
 
                                 <div class="mt-5 space-y-2">
                                     <div class="flex items-center justify-between text-sm text-slate-300">
@@ -282,11 +314,17 @@
                             <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-6 shadow-xl shadow-black/20">
                                 <h3 class="text-xl font-bold text-white">Acciones rápidas</h3>
                                 <div class="mt-4 space-y-3">
-                                    <a href="{{ route('bookings.my-tours', ['tour_id' => $nextTrip->tour_id, 'booking_id' => $nextTrip->id]) }}" class="block rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:border-emerald-400/40 hover:bg-slate-900">
-                                        Ver esquema de pagos
+                                    <a href="{{ route('bookings.my-tours', ['tour_id' => $nextTrip->tour_id, 'booking_id' => $nextTrip->id]) }}" class="inline-flex w-full items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:border-emerald-400/40 hover:bg-slate-900">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"/>
+                                        </svg>
+                                        <span>Ver esquema de pagos</span>
                                     </a>
-                                    <a href="{{ route('tours.show', $nextTrip->tour->id) }}" class="block rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:border-cyan-400/40 hover:bg-slate-900">
-                                        Revisar detalle del tour
+                                    <a href="{{ route('tours.show', $nextTrip->tour->id) }}" class="inline-flex w-full items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:border-cyan-400/40 hover:bg-slate-900">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-cyan-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7Zm0 12a5 5 0 1 1 5-5 5 5 0 0 1-5 5Zm0-8a3 3 0 1 0 3 3 3 3 0 0 0-3-3Z"/>
+                                        </svg>
+                                        <span>Revisar detalle del tour</span>
                                     </a>
                                 </div>
                             </div>
@@ -311,6 +349,8 @@
                                 @foreach($tours as $tour)
                                     @php
                                         $alreadyBooked = isset($myBookedTourIds[$tour->id]);
+                                        $bookingsCountForTour = (int) ($bookingCountsByTour[$tour->id] ?? 0);
+                                        $limitReached = $bookingsCountForTour >= 4;
                                         $isFull = (int) ($tour->cupos_disponibles ?? 0) <= 0;
                                         $deadline = $tour->resolvedPaymentDeadline();
                                     @endphp
@@ -330,15 +370,24 @@
                                                 <div class="text-right">
                                                     <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Total</p>
                                                     <p class="text-xl font-black text-emerald-300">${{ number_format($tour->precio_total ?? 0, 2) }}</p>
+                                                    <p class="mt-1 text-[11px] text-slate-400">{{ $bookingsCountForTour }}/4 registros</p>
                                                 </div>
                                             </div>
 
                                             <div class="grid gap-2 text-sm text-slate-300">
                                                 <div class="rounded-2xl border border-white/5 bg-slate-900/80 px-3 py-2">📍 {{ $tour->ubicacion ?: 'Ubicación por confirmar' }}</div>
-                                                <div class="rounded-2xl border border-white/5 bg-slate-900/80 px-3 py-2">📅 {{ $formatDate($tour->fecha_inicio) }} {{ $tour->fecha_fin ? '→ ' . $formatDate($tour->fecha_fin) : '' }}</div>
+                                                <div class="rounded-2xl border border-white/5 bg-slate-900/80 px-3 py-2">
+                                                    <p>📅 {{ $formatDate($tour->fecha_inicio) }} {{ $tour->fecha_fin ? '→ ' . $formatDate($tour->fecha_fin) : '' }}</p>
+                                                    <p class="text-[11px] text-slate-500">{{ $formatHumanDate($tour->fecha_inicio) }}{{ $tour->fecha_fin ? ' → ' . $formatHumanDate($tour->fecha_fin) : '' }}</p>
+                                                </div>
                                                 <div class="rounded-2xl border border-white/5 bg-slate-900/80 px-3 py-2">👥 {{ $tour->cupos_disponibles }} / {{ $tour->cupos_totales }} lugares</div>
                                                 <div class="rounded-2xl border border-white/5 bg-slate-900/80 px-3 py-2">💳 Anticipo desde ${{ number_format($tour->anticipo ?? 0, 2) }}</div>
-                                                <div class="rounded-2xl border border-white/5 bg-slate-900/80 px-3 py-2">⏳ Liquidación máxima: {{ $deadline ? $deadline->format('d/m/Y') : 'Por definir' }}</div>
+                                                <div class="rounded-2xl border border-white/5 bg-slate-900/80 px-3 py-2">
+                                                    <p>⏳ Liquidación máxima: {{ $deadline ? $deadline->format('d/m/Y') : 'Por definir' }}</p>
+                                                    @if($deadline)
+                                                        <p class="text-[11px] text-slate-500">{{ $deadline->locale('es')->translatedFormat('j \\d\\e F \\d\\e Y') }}</p>
+                                                    @endif
+                                                </div>
                                             </div>
 
                                             <div class="mt-4 grid gap-2 sm:grid-cols-2">
@@ -350,6 +399,10 @@
                                                     <button type="button" disabled class="cursor-not-allowed rounded-xl bg-slate-700 px-3 py-2 text-sm font-semibold text-slate-300">
                                                         Tour completo
                                                     </button>
+                                                @elseif($limitReached)
+                                                    <button onclick="showBookingLimitModal(4)" type="button" class="cursor-not-allowed rounded-xl bg-slate-700 px-3 py-2 text-sm font-semibold text-slate-300">
+                                                        Límite alcanzado
+                                                    </button>
                                                 @else
                                                     <button onclick="openModal('modal-{{ $tour->id }}')" type="button" class="rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-3 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-900/20 transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-cyan-300/60">
                                                         Reservar ahora
@@ -359,17 +412,17 @@
                                         </div>
 
                                         <div id="modal-{{ $tour->id }}" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center p-8">
-                                            <div class="modal-box w-full max-w-md rounded-3xl border border-white/10 bg-white p-6 shadow-2xl">
-                                                <h3 class="text-lg font-bold text-slate-900">Solicitar reservación</h3>
-                                                <p class="text-slate-500 text-sm mb-4">{{ $tour->nombre }}</p>
+                                            <div class="modal-box w-full max-w-md rounded-3xl border border-white/10 bg-slate-950 p-6 shadow-2xl shadow-black/40">
+                                                <h3 class="text-lg font-bold text-white">Solicitar reservación</h3>
+                                                <p class="text-slate-400 text-sm mb-4">{{ $tour->nombre }}</p>
 
-                                                <div class="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 mb-3">
-                                                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">Anticipo a pagar</p>
-                                                    <p class="text-2xl font-black text-cyan-800">${{ number_format($tour->anticipo ?? 0, 2) }}</p>
+                                                <div class="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 mb-3">
+                                                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Anticipo a pagar</p>
+                                                    <p class="text-2xl font-black text-cyan-100">${{ number_format($tour->anticipo ?? 0, 2) }}</p>
                                                 </div>
 
-                                                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 mb-3">
-                                                    <p class="text-[11px] leading-5 text-slate-700">
+                                                <div class="rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 mb-3">
+                                                    <p class="text-[11px] leading-5 text-slate-300">
                                                         @if($tour->payment_installments)
                                                             Este tour está configurado a <strong>{{ $tour->payment_installments }} pago(s)</strong>
                                                             @if($tour->resolvedPaymentDeadline())
@@ -383,16 +436,16 @@
                                                 </div>
 
                                                 @if($bank)
-                                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 mb-3 space-y-1">
-                                                        <p class="text-xs font-bold text-slate-700 mb-1">Datos bancarios</p>
-                                                        <p class="text-xs text-slate-600">{{ $bank->account_type }}</p>
-                                                        <p class="text-xs text-slate-600"><span class="font-medium">Banco:</span> {{ $bank->bank_name }}</p>
-                                                        <p class="text-xs text-slate-600"><span class="font-medium">Cuenta:</span> {{ $bank->account_number }}</p>
-                                                        <p class="text-xs text-slate-600"><span class="font-medium">Titular:</span> {{ $bank->account_holder }}</p>
+                                                    <div class="rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 mb-3 space-y-1">
+                                                        <p class="text-xs font-bold text-white mb-1">Datos bancarios</p>
+                                                        <p class="text-xs text-slate-300">{{ $bank->account_type }}</p>
+                                                        <p class="text-xs text-slate-300"><span class="font-medium">Banco:</span> {{ $bank->bank_name }}</p>
+                                                        <p class="text-xs text-slate-300"><span class="font-medium">Cuenta:</span> {{ $bank->account_number }}</p>
+                                                        <p class="text-xs text-slate-300"><span class="font-medium">Titular:</span> {{ $bank->account_holder }}</p>
                                                     </div>
                                                 @else
-                                                    <div class="rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 mb-3">
-                                                        <p class="text-xs text-yellow-700">⚠️ Sin cuenta bancaria configurada.</p>
+                                                    <div class="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 mb-3">
+                                                        <p class="text-xs text-amber-200">Sin cuenta bancaria configurada.</p>
                                                     </div>
                                                 @endif
 
@@ -401,23 +454,23 @@
                                                     <input type="hidden" name="confirm_additional" value="0" class="confirm-additional-input">
 
                                                     @if($alreadyBooked)
-                                                        <div class="mb-3 rounded-2xl border border-yellow-200 bg-yellow-50 px-3 py-3">
-                                                            <p class="text-xs font-semibold text-yellow-700">Ya te encuentras registrado en este tour.</p>
-                                                            <p class="mt-1 text-xs text-yellow-700">Si deseas agregar otra persona, confirma al enviar y escribe su nombre.</p>
+                                                        <div class="mb-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-3">
+                                                            <p class="text-xs font-semibold text-amber-200">Ya te encuentras registrado en este tour.</p>
+                                                            <p class="mt-1 text-xs text-amber-100">Si deseas agregar otra persona, confirma al enviar y escribe su nombre.</p>
                                                         </div>
                                                     @endif
 
                                                     <div class="mb-3">
-                                                        <label class="mb-1 block text-xs font-semibold text-slate-700">Nombre de la persona a registrar (opcional)</label>
-                                                        <input type="text" name="passenger_name" maxlength="120" placeholder="Déjalo vacío para usar tu nombre" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100">
+                                                        <label class="mb-1 block text-xs font-semibold text-slate-300">Nombre de la persona a registrar (opcional)</label>
+                                                        <input type="text" name="passenger_name" maxlength="120" placeholder="Déjalo vacío para usar tu nombre" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30">
                                                     </div>
 
                                                     <div class="mb-3">
-                                                        <label class="mb-1 block text-xs font-semibold text-slate-700">📎 Comprobante de pago</label>
-                                                        <input type="file" name="receipt" accept="image/*" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-600">
+                                                        <label class="mb-1 block text-xs font-semibold text-slate-300">Comprobante de pago</label>
+                                                        <input type="file" name="receipt" accept="image/*" required class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300">
                                                     </div>
 
-                                                    <p class="mb-4 text-xs leading-5 text-slate-500">
+                                                    <p class="mb-4 text-xs leading-5 text-slate-400">
                                                         Las transferencias pueden tardar hasta <strong>24 horas en días hábiles</strong>. El equipo verificará tu pago y confirmará tu reserva.
                                                     </p>
 
@@ -425,7 +478,7 @@
                                                         <button type="submit" class="flex-1 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-3 py-2 text-sm font-semibold text-white shadow-lg">
                                                             Solicitar
                                                         </button>
-                                                        <button type="button" onclick="closeModal('modal-{{ $tour->id }}')" class="rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
+                                                        <button type="button" onclick="closeModal('modal-{{ $tour->id }}')" class="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-slate-800">
                                                             Cancelar
                                                         </button>
                                                     </div>
@@ -447,17 +500,29 @@
     </div>
 
     <div id="booking-confirm-overlay" class="fixed inset-0 z-[70] hidden items-center justify-center p-4" style="background: rgba(0,0,0,.7);">
-        <div class="w-full max-w-md rounded-2xl border border-gray-700 bg-gray-900 p-6 shadow-2xl">
+        <div class="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl shadow-black/40">
             <h4 class="text-lg font-bold text-white mb-2">Confirmar reservacion</h4>
-            <p class="text-sm text-gray-300 mb-6">
+            <p class="text-sm text-slate-300 mb-6">
                 Ya te encuentras registrado en este tour. ¿Deseas agregar otra persona a tu nombre?
             </p>
             <div class="flex justify-end gap-3">
-                <button id="booking-confirm-cancel" type="button" class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-600">
+                <button id="booking-confirm-cancel" type="button" class="rounded-lg border border-white/10 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
                     No, cancelar
                 </button>
-                <button id="booking-confirm-accept" type="button" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500">
+                <button id="booking-confirm-accept" type="button" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500">
                     Si, continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="booking-limit-overlay" class="fixed inset-0 z-[70] hidden items-center justify-center p-4" style="background: rgba(0,0,0,.7);">
+        <div class="w-full max-w-md rounded-2xl border border-amber-500/30 bg-slate-950 p-6 shadow-2xl shadow-black/40">
+            <h4 class="text-lg font-bold text-amber-200 mb-2">Límite alcanzado</h4>
+            <p id="booking-limit-message" class="text-sm text-slate-300 mb-6">No puedes agregar más personas en este tour.</p>
+            <div class="flex justify-end">
+                <button id="booking-limit-close" type="button" class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-500">
+                    Entendido
                 </button>
             </div>
         </div>
@@ -484,6 +549,9 @@
 
 <script>
     const bookingConfirmOverlay = document.getElementById('booking-confirm-overlay');
+    const bookingLimitOverlay = document.getElementById('booking-limit-overlay');
+    const bookingLimitMessage = document.getElementById('booking-limit-message');
+    const bookingLimitClose = document.getElementById('booking-limit-close');
     const bookingConfirmAccept = document.getElementById('booking-confirm-accept');
     const bookingConfirmCancel = document.getElementById('booking-confirm-cancel');
     let bookingConfirmResolver = null;
@@ -516,9 +584,40 @@
         }
     });
 
+    function showBookingLimitModal(limit = 4) {
+        if (!bookingLimitOverlay) {
+            alert(`No puedes agregar más personas. El límite es ${limit} por usuario en este tour.`);
+            return;
+        }
+
+        if (bookingLimitMessage) {
+            bookingLimitMessage.textContent = `No puedes agregar más personas. El límite es ${limit} por usuario en este tour.`;
+        }
+
+        bookingLimitOverlay.classList.remove('hidden');
+        bookingLimitOverlay.classList.add('flex');
+    }
+
+    function closeBookingLimitModal() {
+        if (!bookingLimitOverlay) return;
+        bookingLimitOverlay.classList.remove('flex');
+        bookingLimitOverlay.classList.add('hidden');
+    }
+
+    bookingLimitClose?.addEventListener('click', closeBookingLimitModal);
+    bookingLimitOverlay?.addEventListener('click', (event) => {
+        if (event.target === bookingLimitOverlay) {
+            closeBookingLimitModal();
+        }
+    });
+
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !bookingConfirmOverlay.classList.contains('hidden')) {
             closeBookingConfirmModal(false);
+        }
+
+        if (event.key === 'Escape' && bookingLimitOverlay && !bookingLimitOverlay.classList.contains('hidden')) {
+            closeBookingLimitModal();
         }
     });
 

@@ -130,8 +130,8 @@
                                 No hay solicitudes en esta sección.
                             </div>
                         @else
-                            <div class="overflow-x-auto rounded-2xl border border-white/10">
-                                <table class="w-full text-sm text-slate-200">
+                            <div class="overflow-x-auto overflow-y-hidden rounded-2xl border border-white/10 pb-1">
+                                <table class="min-w-[1180px] w-full text-sm text-slate-200">
                                     <thead class="bg-slate-800 text-slate-100">
                                         <tr>
                                             <th class="px-4 py-3 text-center font-semibold">#</th>
@@ -142,8 +142,8 @@
                                             <th class="px-4 py-3 text-right font-semibold whitespace-nowrap">ID pago</th>
                                             <th class="px-4 py-3 text-center font-semibold">Monto</th>
                                             <th class="px-4 py-3 text-center font-semibold">Fecha</th>
-                                            <th class="px-4 py-3 text-center font-semibold">Comprobante</th>
-                                            <th class="px-4 py-3 text-center font-semibold">Acción</th>
+                                            <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Comprobante</th>
+                                            <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Acción</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-800 bg-slate-950/60">
